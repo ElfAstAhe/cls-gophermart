@@ -48,12 +48,7 @@ func (app *App) Init() error {
 		return err
 	}
 
-	logger.Info("initializing database")
-	if err := app.initDatabase(); err != nil {
-		return err
-	}
-
-	logger.Info("initializing http server")
+	logger.Info("migrate database")
 	if err := app.migrateDatabase(); err != nil {
 		return err
 	}
@@ -83,9 +78,9 @@ func (app *App) Run() error {
 }
 
 func (app *App) Close() error {
-	//if err := app.DB.Close(); err != nil {
-	//	return err
-	//}
+	if err := _db.CloseDB(app.DB); err != nil {
+		return err
+	}
 
 	if err := app.Log.Close(); err != nil {
 		return err
@@ -143,6 +138,9 @@ func (app *App) migrateDatabase() error {
 }
 
 func (app *App) initRouter() error {
+	// ToDo: implement
+	// ..
+
 	return nil
 }
 

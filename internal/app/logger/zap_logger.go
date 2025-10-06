@@ -5,28 +5,24 @@ import (
 	"go.uber.org/zap"
 )
 
-var Log *zap.Logger = zap.NewNop()
-
-func Initialize(level string, stage string) error {
+func NewZapLogger(level string, stage string) (*zap.Logger, error) {
 	zapLevel, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	config := getConfigByStage(stage)
+	config := getZapConfigByStage(stage)
 	config.Level = zapLevel
 
 	zl, err := config.Build()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	Log = zl
-
-	return nil
+	return zl, nil
 }
 
-func getConfigByStage(stage string) *zap.Config {
+func getZapConfigByStage(stage string) *zap.Config {
 	var config zap.Config
 	switch stage {
 	case _cfg.ProjectStageProduction:

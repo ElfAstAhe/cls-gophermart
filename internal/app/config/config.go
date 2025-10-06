@@ -138,4 +138,5 @@ func (c *Config) initFlags() {
 	flag.StringVar(&c.BaseURL, FlagBaseURL, DefaultBaseURL, "base url")
 	flag.Var(c.HTTP, FlagHTTPInterface, "http interface")
 	flag.StringVar(&c.DBDsn, FlagDBInterface, DefaultDBDsn, "database dsn")
+	flag.StringVar(&c.AccrualBaseURI, FLagAccrualBaseURI, "", "accrual base uri")
 }

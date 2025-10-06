@@ -7,6 +7,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/pressly/goose/v3 v3.25.0
 	go.uber.org/zap v1.27.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

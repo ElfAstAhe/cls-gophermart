@@ -69,6 +69,7 @@ func defaultConfig() *Config {
 		ProjectStage: DefaultStage,
 		LogLevel:     DefaultLogLevel,
 		LogFilePath:  DefaultLogFilePath,
+		HTTP:         NewHTTPConfig(DefaultHTTPHost, DefaultHTTPPort),
 	}
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	_log "github.com/ElfAstAhe/cls-gophermart.git/internal/app/logger"
+	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
 	"github.com/pressly/goose/v3"
 )
 

@@ -4,8 +4,8 @@ import (
 	"io"
 	"os"
 
-	_bs "github.com/ElfAstAhe/cls-gophermart.git/internal/app/bootstrap"
-	_utl "github.com/ElfAstAhe/cls-gophermart.git/internal/utils"
+	_bs "github.com/ElfAstAhe/cls-gophermart/internal/app/bootstrap"
+	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
 )
 
 func main() {

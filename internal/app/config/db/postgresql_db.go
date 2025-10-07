@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	_cfg "github.com/ElfAstAhe/cls-gophermart.git/internal/app/config"
+	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 

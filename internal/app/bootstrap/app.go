@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	_cfg "github.com/ElfAstAhe/cls-gophermart.git/internal/app/config"
-	_db "github.com/ElfAstAhe/cls-gophermart.git/internal/app/config/db"
-	_log "github.com/ElfAstAhe/cls-gophermart.git/internal/app/logger"
-	_handler "github.com/ElfAstAhe/cls-gophermart.git/internal/ep/handler"
-	_utl "github.com/ElfAstAhe/cls-gophermart.git/internal/utils"
-	_migr "github.com/ElfAstAhe/cls-gophermart.git/migrations"
+	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
+	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	_handler "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
+	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
 type App struct {

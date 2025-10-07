@@ -1,4 +1,4 @@
-module github.com/ElfAstAhe/cls-gophermart.git
+module github.com/ElfAstAhe/cls-gophermart
 
 go 1.24.6
 

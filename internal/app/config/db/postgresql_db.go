@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	_cfg "github.com/ElfAstAhe/cls-gophermart.git/internal/app/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -20,6 +21,15 @@ func newPostgresqlDB(dsn string) (*postgresqlDB, error) {
 		return db, nil
 	}
 	pg, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	pg.SetMaxOpenConns(20)
+	pg.SetMaxIdleConns(5)
+	pg.SetConnMaxIdleTime(60 * time.Second)
+
+	err = pg.Ping()
 	if err != nil {
 		return nil, err
 	}

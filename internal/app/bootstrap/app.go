@@ -53,6 +53,11 @@ func (app *App) Init() error {
 		return err
 	}
 
+	logger.Info("initializing dependencies")
+	if err := app.initDependencies(); err != nil {
+		return err
+	}
+
 	logger.Info("initializing http server")
 	if err := app.initRouter(); err != nil {
 		return err
@@ -133,6 +138,12 @@ func (app *App) migrateDatabase() error {
 	if err := migrator.Up(); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (app *App) initDependencies() error {
+	// ToDo: implement
 
 	return nil
 }

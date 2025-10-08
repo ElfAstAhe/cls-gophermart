@@ -15,6 +15,7 @@ const createTableOrdersSql string = `create table if not exists orders (
     accrual_amount numeric(12,2) not null default 0.0,
     uploaded_at timestamptz not null default now(),
     constraint orders_pk primary key (id),
+    constraint orders_uk unique (doc_number),
     constraint orders_fk_account foreign key (account_id) references accounts(id) on delete cascade,
     constraint orders_ch_status check (status in ('REGISTERED', 'INVALID', 'PROCESSING', 'PROCESSED'))
 );`

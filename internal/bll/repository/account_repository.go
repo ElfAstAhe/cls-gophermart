@@ -8,7 +8,7 @@ import (
 
 type AccountRepository interface {
 	// Find search by synthetic key
-	Find(ctx context.Context, ID string) (*_mod.Account, error)
+	Find(ctx context.Context, id string) (*_mod.Account, error)
 	// FindByUser search by bl key (one to one link)
 	FindByUser(ctx context.Context, userID string) (*_mod.Account, error)
 	// Create new account
@@ -16,7 +16,7 @@ type AccountRepository interface {
 	// Change account attributes
 	Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
 	// SoftDelete set deleted flag
-	SoftDelete(ctx context.Context, ID string) error
+	SoftDelete(ctx context.Context, id string) error
 	// Remove physical remove account
-	Remove(ctx context.Context, ID string) error
+	Remove(ctx context.Context, id string) error
 }

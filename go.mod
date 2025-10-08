@@ -4,6 +4,7 @@ go 1.24.6
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/pressly/goose/v3 v3.26.0
 	go.uber.org/zap v1.27.0

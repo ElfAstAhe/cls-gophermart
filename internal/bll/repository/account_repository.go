@@ -15,8 +15,4 @@ type AccountRepository interface {
 	Create(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
 	// Change account attributes
 	Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
-	// SoftDelete set deleted flag
-	SoftDelete(ctx context.Context, id string) error
-	// Remove physical remove account
-	Remove(ctx context.Context, id string) error
 }

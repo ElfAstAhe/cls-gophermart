@@ -24,24 +24,23 @@ const (
 )
 
 type OrderPgRepository struct {
-	db                         _db.DB
-	changeUnacceptableStatuses []string
-	acceptableStatuses         []string
+	db _db.DB
+}
+
+var changeUnacceptableOrderStatuses []string = []string{
+	_mod.OrderStatusInvalid,
+	_mod.OrderStatusProcessed,
+}
+var acceptableOrderStatuses []string = []string{
+	_mod.OrderStatusNew,
+	_mod.OrderStatusProcessing,
+	_mod.OrderStatusInvalid,
+	_mod.OrderStatusProcessed,
 }
 
 func NewOrderPgRepository(db _db.DB) *OrderPgRepository {
 	return &OrderPgRepository{
 		db: db,
-		changeUnacceptableStatuses: []string{
-			_mod.OrderStatusInvalid,
-			_mod.OrderStatusProcessed,
-		},
-		acceptableStatuses: []string{
-			_mod.OrderStatusNew,
-			_mod.OrderStatusProcessing,
-			_mod.OrderStatusInvalid,
-			_mod.OrderStatusProcessed,
-		},
 	}
 }
 
@@ -176,7 +175,7 @@ func (o *OrderPgRepository) validateInstanceNumber(number string) error {
 }
 
 func (o *OrderPgRepository) validateInstanceStatus(order *_mod.Order) error {
-	if !slices.Contains(o.acceptableStatuses, order.Status) {
+	if !slices.Contains(acceptableOrderStatuses, order.Status) {
 		return fmt.Errorf("order status [%v] invalid", order.Status)
 	}
 
@@ -205,7 +204,7 @@ func (o *OrderPgRepository) validateChangeBL(ctx context.Context, order *_mod.Or
 		return _err.NewModelNotExistsError("order", order.ID)
 	}
 	// acceptable status
-	if slices.Contains(o.changeUnacceptableStatuses, order.Status) {
+	if slices.Contains(changeUnacceptableOrderStatuses, order.Status) {
 		return _err.NewModelValidationError("order", "order status is invalid", nil)
 	}
 	// amount

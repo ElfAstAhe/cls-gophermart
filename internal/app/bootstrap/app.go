@@ -11,16 +11,22 @@ import (
 	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
 	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
 	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
 	_handler "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
 	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
 	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
 type App struct {
-	DB     _db.DB
-	Log    _log.AppLogger
-	Conf   *_cfg.Config
-	Router _handler.AppRouter
+	DB           _db.DB
+	Log          _log.AppLogger
+	Conf         *_cfg.Config
+	Router       _handler.AppRouter
+	withdrawRepo _rep.WithdrawRepository
+	orderRepo    _rep.OrderRepository
+	accountRepo  _rep.AccountRepository
+	userRepo     _rep.UserRepository
 }
 
 func NewApp() *App {
@@ -55,6 +61,11 @@ func (app *App) Init() error {
 
 	logger.Info("initializing dependencies")
 	if err := app.initDependencies(); err != nil {
+		return err
+	}
+
+	logger.Info("initializing startup services")
+	if err := app.initStartupServices(); err != nil {
 		return err
 	}
 
@@ -143,6 +154,16 @@ func (app *App) migrateDatabase() error {
 }
 
 func (app *App) initDependencies() error {
+	// ToDo: implement
+	//	app.withdrawRepo = _repi.NewWithdrawPgRepository(app.DB)
+	app.orderRepo = _repi.NewOrderPgRepository(app.DB)
+	//    app.accountRepo = _repi.NewAccountPgRepository(app.DB)
+	app.userRepo = _repi.NewUserPgRepository(app.DB, app.accountRepo)
+
+	return nil
+}
+
+func (app *App) initStartupServices() error {
 	// ToDo: implement
 
 	return nil

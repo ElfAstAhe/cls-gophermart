@@ -9,7 +9,7 @@ type AppInvalidConfigError struct {
 	Err     error
 }
 
-var AppInvalidConfig *AppInvalidConfigError
+var AppInvalidConfigErr *AppInvalidConfigError
 
 func NewAppInvalidConfigError(name string, value any, message string, err error) *AppInvalidConfigError {
 	return &AppInvalidConfigError{

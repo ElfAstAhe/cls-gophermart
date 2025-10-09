@@ -8,6 +8,7 @@ import (
 
 type WithdrawRepository interface {
 	Find(ctx context.Context, id string) (*_mod.Withdraw, error)
-	ListByUser(ctx context.Context, userId string) ([]*_mod.Withdraw, error)
-	WithdrawsByUser(ctx context.Context, userId string) (float64, error)
+	ListByAccount(ctx context.Context, accountID string) ([]*_mod.Withdraw, error)
+	GetWithdrawsByAccount(ctx context.Context, accountID string) (float64, error)
+	Create(ctx context.Context, accountID string, withdraw *_mod.Withdraw) (*_mod.Withdraw, error)
 }

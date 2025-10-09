@@ -154,10 +154,9 @@ func (app *App) migrateDatabase() error {
 }
 
 func (app *App) initDependencies() error {
-	// ToDo: implement
-	//	app.withdrawRepo = _repi.NewWithdrawPgRepository(app.DB)
+	app.withdrawRepo = _repi.NewWithdrawPgRepository(app.DB)
 	app.orderRepo = _repi.NewOrderPgRepository(app.DB)
-	//    app.accountRepo = _repi.NewAccountPgRepository(app.DB)
+	app.accountRepo = _repi.NewAccountPgRepository(app.DB, app.withdrawRepo, app.orderRepo)
 	app.userRepo = _repi.NewUserPgRepository(app.DB, app.accountRepo)
 
 	return nil

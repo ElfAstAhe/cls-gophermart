@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"os"
 
 	_bs "github.com/ElfAstAhe/cls-gophermart/internal/app/bootstrap"
@@ -13,7 +12,7 @@ func main() {
 	app := _bs.NewApp()
 	defer _utl.CloseOnly(app)
 	logger := app.Log.GetLogger("main")
-	defer _utl.CloseOnly(logger.(io.Closer))
+	//	defer _utl.CloseOnly(logger.(io.Closer))
 
 	// app initialization
 	logger.Info("app initialization")
@@ -32,4 +31,5 @@ func main() {
 	}
 
 	logger.Info("app shutdown")
+	os.Exit(0)
 }

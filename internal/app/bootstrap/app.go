@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,7 +13,7 @@ import (
 	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
 	_handler "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	_hnd "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
 	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
@@ -37,7 +36,7 @@ func NewApp() *App {
 
 func (app *App) Init() error {
 	logger := app.Log.GetLogger("app")
-	defer _utl.CloseOnly(logger.(io.Closer))
+	//    defer _utl.CloseOnly(logger.(io.Closer))
 
 	logger.Info("loading config")
 	if err := app.loadConfig(); err != nil {
@@ -79,7 +78,7 @@ func (app *App) Init() error {
 
 func (app *App) Run() error {
 	logger := app.Log.GetLogger("app run")
-	defer _utl.CloseOnly(logger.(io.Closer))
+	//    defer _utl.CloseOnly(logger.(io.Closer))
 	logger.Info("Starting graceful shutdown go routine...")
 	go app.gracefulShutdown()
 
@@ -169,8 +168,7 @@ func (app *App) initStartupServices() error {
 }
 
 func (app *App) initRouter() error {
-	// ToDo: implement
-	// ..
+	app.Router = _hnd.NewChiRouter(app.Conf, app.Log)
 
 	return nil
 }
@@ -183,11 +181,11 @@ func (app *App) gracefulShutdown() {
 	// awaiting signal
 	<-sig
 
-	if err := _db.CloseDB(app.DB); err != nil {
-		app.Log.Errorf("Error closing database: [%v]", err)
-	}
+	//if err := _db.CloseDB(app.DB); err != nil {
+	//	app.Log.Errorf("Error closing database: [%v]", err)
+	//}
 
-	app.Log.Info("Shutting down server done")
+	app.Log.Info("Graceful shutdown server done")
 
 	os.Exit(0)
 }

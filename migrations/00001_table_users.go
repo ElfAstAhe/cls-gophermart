@@ -7,7 +7,8 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-const createTableUsersSql string = `create table if not exists users(
+const (
+	pgCreateTableUsersSql string = `create table if not exists users(
     id varchar(50) not null,
     username varchar(100) not null,
     password varchar(1024) not null,
@@ -15,9 +16,10 @@ const createTableUsersSql string = `create table if not exists users(
     constraint users_pk primary key (id),
     constraint user_uk_username unique(username)
 );`
-const dropTableUsersSql string = `drop table if exists users cascade;`
-const createIndexUsersSql string = `create index if not exists users_idx on users(disabled asc, username asc)`
-const dropIndexUsersSql string = `drop index if exists users_idx cascade`
+	pgDropTableUsersSql   string = `drop table if exists users cascade;`
+	pgCreateIndexUsersSql string = `create index if not exists users_idx on users(disabled asc, username asc);`
+	pgDropIndexUsersSql   string = `drop index if exists users_idx cascade;`
+)
 
 func init() {
 	goose.AddMigrationNoTxContext(up00001, down00001)
@@ -40,7 +42,7 @@ func down00001(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, createTableUsersSql)
+	_, err := db.ExecContext(ctx, pgCreateTableUsersSql)
 	if err != nil {
 		return err
 	}
@@ -49,7 +51,7 @@ func createTableUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, createIndexUsersSql)
+	_, err := db.ExecContext(ctx, pgCreateIndexUsersSql)
 	if err != nil {
 		return err
 	}
@@ -58,7 +60,7 @@ func createIndexUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, dropTableUsersSql)
+	_, err := db.ExecContext(ctx, pgDropTableUsersSql)
 	if err != nil {
 		return err
 	}
@@ -67,7 +69,7 @@ func dropTableUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, dropIndexUsersSql)
+	_, err := db.ExecContext(ctx, pgDropIndexUsersSql)
 	if err != nil {
 		return err
 	}

@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	pgFindAccountSql       string = `select id, accrual_amount from accounts where id = $1`
-	pgFindAccountByUserSql string = `select id, accrual_amount from accounts where user_id = $1`
-	pgCreateAccountSql     string = `insert into accounts (id, user_id, accrual_amount) values ($1, $2, $3)`
-	pgChangeAccountSql     string = `update accounts set accrual_amount = $2 where id = $1`
+	pgFindAccountSql       string = `select id, person from accounts where id = $1`
+	pgFindAccountByUserSql string = `select id, person from accounts where user_id = $1`
+	pgCreateAccountSql     string = `insert into accounts (id, user_id, person) values ($1, $2, $3)`
+	pgChangeAccountSql     string = `update accounts set person = $2 where id = $1`
+	pgGetAccountBalanceSql string = `select account_id, balance, accruals_amount, withdrawals_amount from v_accounts_balance where account_id = $1`
 )
 
 type AccountPgRepository struct {
@@ -53,7 +54,7 @@ func (a *AccountPgRepository) findSingle(ctx context.Context, query string, para
 	row := a.db.GetDB().QueryRowContext(ctx, query, param)
 
 	model := &_mod.Account{}
-	err := row.Scan(&model.ID, &model.AccrualAmount)
+	err := row.Scan(&model.ID, &model.Person)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
@@ -76,7 +77,7 @@ func (a *AccountPgRepository) findSingle(ctx context.Context, query string, para
 func (a *AccountPgRepository) Create(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error) {
 	account.ID = uuid.New().String()
 
-	_, err := a.db.GetDB().ExecContext(ctx, pgCreateAccountSql, account.ID, userID, account)
+	_, err := a.db.GetDB().ExecContext(ctx, pgCreateAccountSql, account.ID, userID, account.Person)
 	if err != nil {
 		return nil, err
 	}
@@ -85,10 +86,28 @@ func (a *AccountPgRepository) Create(ctx context.Context, userID string, account
 }
 
 func (a *AccountPgRepository) Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error) {
-	_, err := a.db.GetDB().ExecContext(ctx, pgChangeAccountSql, account.ID, account)
+	_, err := a.db.GetDB().ExecContext(ctx, pgChangeAccountSql, account.ID, account.Person)
 	if err != nil {
 		return nil, err
 	}
 
 	return account, nil
+}
+
+// GetBalance ToDo: maybe need to move into separate repository
+// GetBalance get account current full balance info
+func (a *AccountPgRepository) GetBalance(ctx context.Context, id string) (*_mod.AccountBalance, error) {
+	row := a.db.GetDB().QueryRowContext(ctx, pgGetAccountBalanceSql, id)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+	model := &_mod.AccountBalance{}
+	err := row.Scan(&model.ID, &model.Balance, &model.AccrualsAmount, &model.WithdrawalsAmount)
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return model, nil
 }

@@ -7,15 +7,17 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-const createTableAccountsSql string = `create table if not exists accounts(
+const (
+	pgCreateTableAccountsSql string = `create table if not exists accounts(
     id varchar(50) not null,
     user_id varchar(50) not null,
-    accrual_amount numeric(12,2) not null default 0.0,
+    person varchar(256) null,
     constraint accounts_pk primary key(id),
     constraint accounts_uk unique (user_id),
     constraint accounts_fk_user foreign key (user_id) references users(id) on delete cascade
 );`
-const dropTableAccountsSql string = `drop table if exists accounts cascade;`
+	pgDropTableAccountsSql string = `drop table if exists accounts cascade;`
+)
 
 func init() {
 	goose.AddMigrationNoTxContext(up00002, down00002)
@@ -30,7 +32,7 @@ func down00002(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableAccounts(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, createTableAccountsSql)
+	_, err := db.ExecContext(ctx, pgCreateTableAccountsSql)
 	if err != nil {
 		return err
 	}
@@ -39,7 +41,7 @@ func createTableAccounts(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableAccounts(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, dropTableAccountsSql)
+	_, err := db.ExecContext(ctx, pgDropTableAccountsSql)
 	if err != nil {
 		return err
 	}

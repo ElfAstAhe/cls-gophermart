@@ -7,7 +7,8 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-const createTableWithdrawalsSql = `create table if not exists withdrawals (
+const (
+	pgCreateTableWithdrawalsSql string = `create table if not exists withdrawals (
     id varchar(50) not null,
     account_id varchar(50) not null,
     order_number varchar(100) not null,
@@ -17,10 +18,10 @@ const createTableWithdrawalsSql = `create table if not exists withdrawals (
     constraint withdrawals_fk foreign key (account_id) references accounts(id) on delete cascade,
     constraint withdrawals_ch_amount check (withdraw_amount >= 0.0)
 );`
-const dropTableWithdrawalsSql string = `drop table if exists withdrawals cascade;`
-
-const createIndexWithdrawalsSql string = `create index if not exists withdrawals_idx on withdrawals(account_id asc, processed_at desc);`
-const dropIndexWithdrawalsSql string = `drop index if exists withdrawals_idx;`
+	pgDropTableWithdrawalsSql   string = `drop table if exists withdrawals cascade;`
+	pgCreateIndexWithdrawalsSql string = `create index if not exists withdrawals_idx on withdrawals(account_id asc, processed_at desc);`
+	pgDropIndexWithdrawalsSql   string = `drop index if exists withdrawals_idx cascade;`
+)
 
 func init() {
 	goose.AddMigrationNoTxContext(up00004, down00004)
@@ -43,7 +44,7 @@ func down00004(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(createTableWithdrawalsSql)
+	_, err := db.Exec(pgCreateTableWithdrawalsSql)
 	if err != nil {
 		return err
 	}
@@ -52,7 +53,7 @@ func createTableWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(createIndexWithdrawalsSql)
+	_, err := db.Exec(pgCreateIndexWithdrawalsSql)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func createIndexWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(dropTableWithdrawalsSql)
+	_, err := db.Exec(pgDropTableWithdrawalsSql)
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func dropTableWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(dropIndexWithdrawalsSql)
+	_, err := db.Exec(pgDropIndexWithdrawalsSql)
 	if err != nil {
 		return err
 	}

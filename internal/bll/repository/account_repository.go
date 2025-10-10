@@ -15,4 +15,6 @@ type AccountRepository interface {
 	Create(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
 	// Change account attributes
 	Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
+	// GetBalance get account current full balance info
+	GetBalance(ctx context.Context, id string) (*_mod.AccountBalance, error)
 }

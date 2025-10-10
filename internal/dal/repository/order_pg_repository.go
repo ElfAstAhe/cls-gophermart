@@ -6,14 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strconv"
 
 	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
 	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
 	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 	"github.com/google/uuid"
-	"github.com/phedde/luhn-algorithm"
 )
 
 const (
@@ -153,7 +151,7 @@ func (o *OrderPgRepository) validateInstance(order *_mod.Order) error {
 	}
 
 	// order number (luna algorithm)
-	if err := o.validateInstanceNumber(order.Number); err != nil {
+	if err := _utl.ValidateOrderNumberByLuhn(order.Number); err != nil {
 		return _err.NewModelValidationError("order", "order number invalid", err)
 	}
 
@@ -165,18 +163,6 @@ func (o *OrderPgRepository) validateInstance(order *_mod.Order) error {
 	// amount
 	if !(order.AccrualAmount >= 0.0) {
 		return _err.NewModelValidationError("order", "order accrual_amount must be greater than zero", nil)
-	}
-
-	return nil
-}
-
-func (o *OrderPgRepository) validateInstanceNumber(number string) error {
-	num, err := strconv.ParseInt(number, 10, 64)
-	if err != nil {
-		return fmt.Errorf("only digits in order number [%s] error", number)
-	}
-	if !luhn.IsValid(num) {
-		return fmt.Errorf("order number [%s] is invalid", number)
 	}
 
 	return nil

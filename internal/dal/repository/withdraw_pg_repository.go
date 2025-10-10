@@ -15,7 +15,7 @@ import (
 
 const (
 	pgFindWithdrawSql          string = `select id, order_number, withdraw_amount, processed_at from withdrawals where id = $1;`
-	pgListWithdrawByAccountSql string = `select id, order_number, withdraw_amount, processed_at from withdrawals where account_id = $1;`
+	pgListWithdrawByAccountSql string = `select id, order_number, withdraw_amount, processed_at from withdrawals where account_id = $1 order by processed_at desc;`
 	pgGetWithdrawsByAccountSql string = `select sum(withdraw_amount) from withdrawals where account_id = $1;`
 	pgCreateWithdrawSql        string = `insert into withdrawals(id, account_id, order_number, withdraw_amount, processed_at) values ($1, $2, $3, $4, $5);`
 )
@@ -109,8 +109,8 @@ func (wr *WithdrawPgRepository) validateInstance(instance *_mod.Withdraw) error 
 	if !(instance.WithdrawAmount > 0.0) {
 		return _err.NewModelValidationError("withdraw", "withdraw amount must be greater zero", nil)
 	}
-	if strings.TrimSpace(instance.OrderNumber) == "" {
-		return _err.NewModelValidationError("withdraw", "order number is null", nil)
+	if err := _utl.ValidateOrderNumberByLuhn(instance.OrderNumber); err != nil {
+		return err
 	}
 
 	return nil

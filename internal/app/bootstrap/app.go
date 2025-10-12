@@ -11,6 +11,7 @@ import (
 	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
 	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
 	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
 	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
 	_handler "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
 	_hnd "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
@@ -18,14 +19,16 @@ import (
 )
 
 type App struct {
-	DB           _db.DB
-	Log          _log.AppLogger
-	Conf         *_cfg.Config
-	Router       _handler.AppRouter
-	withdrawRepo _rep.WithdrawRepository
-	orderRepo    _rep.OrderRepository
-	accountRepo  _rep.AccountRepository
-	userRepo     _rep.UserRepository
+	DB             _db.DB
+	Log            _log.AppLogger
+	Conf           *_cfg.Config
+	Router         _handler.AppRouter
+	withdrawRepo   _rep.WithdrawRepository
+	orderRepo      _rep.OrderRepository
+	accountRepo    _rep.AccountRepository
+	userRepo       _rep.UserRepository
+	accountService _svc.AccountService
+	authService    _svc.AuthService
 }
 
 func NewApp() *App {
@@ -153,10 +156,15 @@ func (app *App) migrateDatabase() error {
 }
 
 func (app *App) initDependencies() error {
+	// repositories
 	app.withdrawRepo = _repi.NewWithdrawPgRepository(app.DB)
 	app.orderRepo = _repi.NewOrderPgRepository(app.DB)
 	app.accountRepo = _repi.NewAccountPgRepository(app.DB, app.withdrawRepo, app.orderRepo)
 	app.userRepo = _repi.NewUserPgRepository(app.DB, app.accountRepo)
+
+	// services
+	app.accountService = _svc.NewAccountServiceImpl(app.accountRepo, app.withdrawRepo, app.orderRepo)
+	app.authService = _svc.NewAuthService(app.userRepo)
 
 	return nil
 }

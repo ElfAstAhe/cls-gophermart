@@ -20,7 +20,7 @@ func NewGooseDBMigrator(ctx context.Context, db *sql.DB, logger _log.AppLogger) 
 	return &GooseDBMigrator{
 		DB:  db,
 		ctx: ctx,
-		log: logger.GetLogger("migration"),
+		log: logger,
 	}, nil
 }
 

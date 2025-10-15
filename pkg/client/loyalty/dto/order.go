@@ -10,5 +10,5 @@ const (
 type LSOrderDto struct {
 	Number        string  `json:"order"`
 	Status        string  `json:"status"`
-	AccrualAmount float64 `json:"accrual"`
+	AccrualAmount float64 `json:"accrual,omitempty"`
 }

@@ -1,7 +1,38 @@
 package handler
 
-import "net/http"
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+
+	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+)
 
 func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request) {
-	// ToDo: implement
+	cr.log.Debug("getApiUserOrders start")
+	defer cr.log.Debug("getApiUserOrders finish")
+
+	dtoList, err := cr.usersFacade.GetOrders(r.Context())
+	if err != nil {
+		if errors.As(err, &_err.AuthUnauthorizedErr) {
+			http.Error(rw, err.Error(), http.StatusUnauthorized)
+
+			return
+		}
+
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	if len(dtoList) == 0 {
+		rw.WriteHeader(http.StatusNoContent)
+	} else {
+		rw.WriteHeader(http.StatusOK)
+	}
+
+	enc := json.NewEncoder(rw)
+	if err := enc.Encode(dtoList); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
 }

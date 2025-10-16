@@ -98,8 +98,8 @@ func (ops *OrdersPollingServiceImpl) timerEventListener(stopCtx context.Context,
 }
 
 func (ops *OrdersPollingServiceImpl) processEvent(stopCtx context.Context) {
-	ops.log.Debug("order polling service scheduler timer event started")
-	defer ops.log.Debug("order polling service scheduler timer event finished")
+	ops.log.Info("order polling service scheduler timer event started")
+	defer ops.log.Info("order polling service scheduler timer event finished")
 	queueLength := len(ops.queue)
 	ops.log.Infof("processing order polling service scheduler timer event queue length: %d", queueLength)
 	if queueLength != 0 {

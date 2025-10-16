@@ -13,6 +13,7 @@ import (
 	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
 	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
+	_fce "github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
 	_hnd "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
 	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
 	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
@@ -22,7 +23,6 @@ type App struct {
 	DB               _db.DB
 	Log              _log.AppLogger
 	Conf             *_cfg.Config
-	Router           _hnd.AppRouter
 	withdrawRepo     _rep.WithdrawRepository
 	orderRepo        _rep.OrderRepository
 	accountRepo      _rep.AccountRepository
@@ -30,6 +30,8 @@ type App struct {
 	accountService   _svc.AccountService
 	authService      _svc.AuthService
 	orderPollService _svc.OrdersPollingService
+	usersFacade      _fce.UsersFacade
+	Router           _hnd.AppRouter
 }
 
 func NewApp() *App {
@@ -170,13 +172,16 @@ func (app *App) initDependencies() error {
 	// services
 	app.accountService = _svc.NewAccountServiceImpl(app.accountRepo, app.withdrawRepo, app.orderRepo)
 	app.authService = _svc.NewAuthService(app.userRepo)
+	app.orderPollService = _svc.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
+
+	// facade
+	app.usersFacade = _fce.NewUsersFacadeImpl(app.accountService)
 
 	return nil
 }
 
 func (app *App) initStartupServices() error {
 	// polling service
-	app.orderPollService = _svc.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
 	if err := app.orderPollService.Start(); err != nil {
 		return err
 	}
@@ -185,7 +190,7 @@ func (app *App) initStartupServices() error {
 }
 
 func (app *App) initRouter() error {
-	app.Router = _hnd.NewChiRouter(app.Conf, app.Log)
+	app.Router = _hnd.NewChiRouter(app.Conf, app.usersFacade, app.Log)
 
 	return nil
 }

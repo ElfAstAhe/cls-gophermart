@@ -6,6 +6,7 @@ import (
 
 	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
 	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	_fce "github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
 	_cpr "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/compress"
 	_hlg "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/logger"
 	"github.com/go-chi/chi/v5"
@@ -13,16 +14,18 @@ import (
 )
 
 type AppChiRouter struct {
-	router *chi.Mux
-	log    _log.AppLogger
-	conf   *_cfg.Config
+	router      *chi.Mux
+	log         _log.AppLogger
+	conf        *_cfg.Config
+	usersFacade _fce.UsersFacade
 }
 
-func NewChiRouter(config *_cfg.Config, logger _log.AppLogger) *AppChiRouter {
+func NewChiRouter(config *_cfg.Config, usersFacade _fce.UsersFacade, logger _log.AppLogger) *AppChiRouter {
 	res := &AppChiRouter{
-		router: chi.NewRouter(),
-		log:    logger.GetLogger("app router"),
-		conf:   config,
+		router:      chi.NewRouter(),
+		log:         logger.GetLogger("app router"),
+		conf:        config,
+		usersFacade: usersFacade,
 	}
 
 	res.setupMiddleware(logger.GetLogger("middleware"))

@@ -14,11 +14,11 @@ const (
 type OrderDto struct {
 	DocNumber     string      `json:"number"`
 	Status        OrderStatus `json:"status"`
-	AccrualAmount float32     `json:"accrual,omitempty"`
+	AccrualAmount float64     `json:"accrual,omitempty"`
 	UploadedAt    time.Time   `json:"uploaded_at"`
 }
 
-func NewOrderDto(docNumber string, status OrderStatus, accrualAmount float32, uploadedAt time.Time) *OrderDto {
+func NewOrderDto(docNumber string, status OrderStatus, accrualAmount float64, uploadedAt time.Time) *OrderDto {
 	return &OrderDto{
 		DocNumber:     docNumber,
 		Status:        status,

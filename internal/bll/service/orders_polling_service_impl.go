@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -219,4 +220,14 @@ func (ops *OrdersPollingServiceImpl) toModelStatus(dtoStatus string) (string, er
 	}
 
 	return "", _err.NewAppInvalidArgumentError("dtoStatus", dtoStatus)
+}
+
+func (ops *OrdersPollingServiceImpl) Add(ID string) {
+	if strings.TrimSpace(ID) == "" {
+		return
+	}
+
+	go func() {
+		ops.queue <- ID
+	}()
 }

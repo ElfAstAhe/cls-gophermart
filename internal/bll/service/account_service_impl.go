@@ -13,16 +13,18 @@ import (
 )
 
 type AccountServiceImpl struct {
-	accountRepo  _repo.AccountRepository
-	withdrawRepo _repo.WithdrawRepository
-	orderRepo    _repo.OrderRepository
+	accountRepo      _repo.AccountRepository
+	withdrawRepo     _repo.WithdrawRepository
+	orderRepo        _repo.OrderRepository
+	orderPollService OrdersPollingService
 }
 
-func NewAccountServiceImpl(accountRepo _repo.AccountRepository, withdrawRepo _repo.WithdrawRepository, orderRepo _repo.OrderRepository) *AccountServiceImpl {
+func NewAccountServiceImpl(orderPollService OrdersPollingService, accountRepo _repo.AccountRepository, withdrawRepo _repo.WithdrawRepository, orderRepo _repo.OrderRepository) *AccountServiceImpl {
 	return &AccountServiceImpl{
-		accountRepo:  accountRepo,
-		withdrawRepo: withdrawRepo,
-		orderRepo:    orderRepo,
+		accountRepo:      accountRepo,
+		withdrawRepo:     withdrawRepo,
+		orderRepo:        orderRepo,
+		orderPollService: orderPollService,
 	}
 }
 
@@ -104,7 +106,8 @@ func (a *AccountServiceImpl) CreateOrder(ctx context.Context, userID string, ord
 		return err
 	}
 
-	// ToDo: add order into poll channel
+	// add id for order poll
+	a.orderPollService.Add(model.ID)
 
 	return nil
 }

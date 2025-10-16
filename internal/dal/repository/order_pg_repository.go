@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	pgFindOrderSql            string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where id = $1`
-	pgFindOrderByNumberSql    string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where doc_number = $1`
-	pgListOrdersByAccountSql  string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where account_id = $1`
-	pgCreateOrderSql          string = `insert into orders(id, account_id, doc_number, status, accrual_amount, uploaded_at) values($1, $2, $3, $4, $5, $6)`
-	pgChangeOrderSql          string = `update orders set status = $2, accrual_amount = $3, uploaded_at = $4 where id = $1`
-	pgListOrdersUnfinishedSql string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where status = any($1)`
+	pgFindOrderSql                   string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where id = $1`
+	pgFindOrderByNumberSql           string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where doc_number = $1`
+	pgFindOrderByNumberAndAccountSql string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where doc_number = $1 and account_id = $2`
+	pgListOrdersByAccountSql         string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where account_id = $1`
+	pgCreateOrderSql                 string = `insert into orders(id, account_id, doc_number, status, accrual_amount, uploaded_at) values($1, $2, $3, $4, $5, $6)`
+	pgChangeOrderSql                 string = `update orders set status = $2, accrual_amount = $3, uploaded_at = $4 where id = $1`
+	pgListOrdersUnfinishedSql        string = `select id, doc_number, status, accrual_amount, uploaded_at from orders where status = any($1)`
 )
 
 type OrderPgRepository struct {
@@ -52,8 +53,12 @@ func (o *OrderPgRepository) FindByNumber(ctx context.Context, number string) (*_
 	return o.findSingle(ctx, pgFindOrderByNumberSql, number)
 }
 
-func (o *OrderPgRepository) findSingle(ctx context.Context, query string, param any) (*_mod.Order, error) {
-	row := o.db.GetDB().QueryRowContext(ctx, query, param)
+func (o *OrderPgRepository) FindByNumberAndAccount(ctx context.Context, accountId string, number string) (*_mod.Order, error) {
+	return o.findSingle(ctx, pgFindOrderByNumberAndAccountSql, accountId, number)
+}
+
+func (o *OrderPgRepository) findSingle(ctx context.Context, query string, params ...any) (*_mod.Order, error) {
+	row := o.db.GetDB().QueryRowContext(ctx, query, params...)
 
 	model := &_mod.Order{}
 	err := row.Scan(&model.ID, &model.Number, &model.Status, &model.AccrualAmount, &model.UploadedAt)
@@ -114,7 +119,7 @@ func (o *OrderPgRepository) Create(ctx context.Context, accountId string, order 
 		return nil, err
 	}
 
-	if err := o.validateCreateBL(ctx, order); err != nil {
+	if err := o.validateCreateBL(ctx, accountId, order); err != nil {
 		return nil, err
 	}
 
@@ -176,13 +181,20 @@ func (o *OrderPgRepository) validateInstanceStatus(order *_mod.Order) error {
 	return nil
 }
 
-func (o *OrderPgRepository) validateCreateBL(ctx context.Context, order *_mod.Order) error {
-	model, err := o.FindByNumber(ctx, order.Number)
+func (o *OrderPgRepository) validateCreateBL(ctx context.Context, accountId string, order *_mod.Order) error {
+	modelCurrent, err := o.FindByNumberAndAccount(ctx, order.Number, accountId)
 	if err != nil {
 		return err
 	}
-	if model != nil {
-		return _err.NewModelAlreadyExistsError("order", order.Number)
+	modelAnother, err := o.FindByNumber(ctx, order.Number)
+	if err != nil {
+		return err
+	}
+	if modelCurrent != nil {
+		return _err.NewBllOrderAlreadyExistsCurrentError(order.Number)
+	}
+	if modelAnother != nil {
+		return _err.NewBllOrderAlreadyExistsAnotherError(order.Number)
 	}
 
 	return nil

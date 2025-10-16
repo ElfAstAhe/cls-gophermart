@@ -8,5 +8,7 @@ import (
 
 type UsersFacade interface {
 	GetBalance(ctx context.Context) (*_dto.BalanceDto, error)
-	GetOrders(ctx context.Context) ([]*_dto.OrderDto, error)
+	ListOrders(ctx context.Context) ([]*_dto.OrderDto, error)
+	ListWithdrawals(ctx context.Context) ([]*_dto.WithdrawDto, error)
+	CreateOrder(ctx context.Context, orderNum []byte) error
 }

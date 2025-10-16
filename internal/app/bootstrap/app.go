@@ -170,9 +170,9 @@ func (app *App) initDependencies() error {
 	app.userRepo = _repi.NewUserPgRepository(app.DB, app.accountRepo)
 
 	// services
-	app.accountService = _svc.NewAccountServiceImpl(app.accountRepo, app.withdrawRepo, app.orderRepo)
-	app.authService = _svc.NewAuthService(app.userRepo)
 	app.orderPollService = _svc.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
+	app.accountService = _svc.NewAccountServiceImpl(app.orderPollService, app.accountRepo, app.withdrawRepo, app.orderRepo)
+	app.authService = _svc.NewAuthService(app.userRepo)
 
 	// facade
 	app.usersFacade = _fce.NewUsersFacadeImpl(app.accountService)

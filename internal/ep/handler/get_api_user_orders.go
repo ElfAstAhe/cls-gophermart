@@ -12,7 +12,7 @@ func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request
 	cr.log.Debug("getApiUserOrders start")
 	defer cr.log.Debug("getApiUserOrders finish")
 
-	dtoList, err := cr.usersFacade.GetOrders(r.Context())
+	dtoList, err := cr.usersFacade.ListOrders(r.Context())
 	if err != nil {
 		if errors.As(err, &_err.AuthUnauthorizedErr) {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)

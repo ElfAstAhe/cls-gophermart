@@ -23,8 +23,8 @@ func ToOrderDto(model *_mod.Order) *_dto.OrderDto {
 
 func ToOrderDtoList(models []*_mod.Order) []*_dto.OrderDto {
 	res := make([]*_dto.OrderDto, len(models))
-	for i, model := range models {
-		res[i] = ToOrderDto(model)
+	for _, model := range models {
+		res = append(res, ToOrderDto(model))
 	}
 
 	return res
@@ -43,4 +43,21 @@ func toOrderStatusDto(modelStatus string) _dto.OrderStatus {
 	}
 
 	return ""
+}
+
+func ToWithdrawDto(model *_mod.Withdraw) *_dto.WithdrawDto {
+	if model == nil {
+		return nil
+	}
+
+	return _dto.NewWithdrawDto(model.OrderNumber, model.WithdrawAmount, model.ProcessedAt)
+}
+
+func ToWithdrawDtoList(models []*_mod.Withdraw) []*_dto.WithdrawDto {
+	res := make([]*_dto.WithdrawDto, 0)
+	for _, model := range models {
+		res = append(res, ToWithdrawDto(model))
+	}
+
+	return res
 }

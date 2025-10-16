@@ -27,6 +27,8 @@ func (cr *AppChiRouter) postApiUserBalanceWithdraw(rw http.ResponseWriter, r *ht
 		if errors.As(err, &_err.AuthUnauthorizedErr) {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
 		}
+		// ToDo: implement
+		// ..
 	}
 
 	rw.WriteHeader(http.StatusOK)

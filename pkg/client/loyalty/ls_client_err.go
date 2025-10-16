@@ -3,16 +3,18 @@ package loyalty
 import "fmt"
 
 type LSClientError struct {
-	message string
-	err     error
+	StatusCode int
+	message    string
+	err        error
 }
 
 var LSClientErr *LSClientError
 
-func NewLSClientError(message string, err error) *LSClientError {
+func NewLSClientError(message string, statusCode int, err error) *LSClientError {
 	return &LSClientError{
-		message: message,
-		err:     err,
+		message:    message,
+		StatusCode: statusCode,
+		err:        err,
 	}
 }
 

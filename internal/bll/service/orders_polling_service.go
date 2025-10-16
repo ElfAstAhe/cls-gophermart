@@ -1,6 +1,8 @@
 package service
 
-import "context"
+import (
+	"context"
+)
 
 type OrdersPollingService interface {
 	Start(ctx context.Context) error

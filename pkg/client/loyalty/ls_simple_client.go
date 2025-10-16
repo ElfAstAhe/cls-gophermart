@@ -36,20 +36,20 @@ func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string, toke
 	getOrderUrl := path.Join(lc.baseURL, lsGetOrderPathParam)
 	req, err := http.NewRequest(http.MethodGet, getOrderUrl, nil)
 	if err != nil {
-		return nil, NewLSClientError(fmt.Sprintf("error creating request to get order [%s]", orderNumber), err)
+		return nil, NewLSClientError(fmt.Sprintf("error creating request to get order [%s]", orderNumber), -1, err)
 	}
 	resp, err := lc.client.Do(req)
 	if err != nil {
-		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), err)
+		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), -1, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s] with status code [%v]", orderNumber, resp.StatusCode), nil)
+		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s] with status code [%v]", orderNumber, resp.StatusCode), resp.StatusCode, nil)
 	}
 	decoder := json.NewDecoder(resp.Body)
 	dto := &_dto.LSOrderDto{}
 	if err := decoder.Decode(dto); err != nil {
-		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), err)
+		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), -1, err)
 	}
 
 	return dto, nil

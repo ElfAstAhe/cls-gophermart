@@ -13,11 +13,11 @@ func (cr *AppChiRouter) postApiUserOrders(rw http.ResponseWriter, r *http.Reques
 	cr.log.Debug("postApiUserOrders start")
 	defer cr.log.Debug("postApiUserOrders finish")
 
-	if r.Header.Get("Content-Type") != "text/plain" {
-		http.Error(rw, "Content-Type not supported, supported text/plain", http.StatusBadRequest)
-
-		return
-	}
+	//if r.Header.Get("Content-Type") != "text/plain" {
+	//	http.Error(rw, "Content-Type not supported, supported text/plain", http.StatusBadRequest)
+	//
+	//	return
+	//}
 	bytes, err := io.ReadAll(r.Body)
 	defer _utl.CloseOnly(r.Body)
 	if err != nil {

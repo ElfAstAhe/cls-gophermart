@@ -11,4 +11,5 @@ type UsersFacade interface {
 	ListOrders(ctx context.Context) ([]*_dto.OrderDto, error)
 	ListWithdrawals(ctx context.Context) ([]*_dto.WithdrawDto, error)
 	CreateOrder(ctx context.Context, orderNum []byte) error
+	CreateWithdraw(ctx context.Context, request *_dto.WithdrawDto) error
 }

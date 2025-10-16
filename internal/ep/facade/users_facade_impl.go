@@ -75,3 +75,12 @@ func (ufi *UsersFacadeImpl) CreateOrder(ctx context.Context, orderNum []byte) er
 
 	return ufi.accountService.CreateOrder(ctx, userID.(string), string(orderNum))
 }
+
+func (ufi *UsersFacadeImpl) CreateWithdraw(ctx context.Context, request *_dto.WithdrawDto) error {
+	userID := ctx.Value("user_id")
+	if userID == nil {
+		return _err.NewAuthUnauthorizedError("user_id not found in context")
+	}
+
+	return ufi.accountService.Withdraw(ctx, userID.(string), request.Order, request.WithdrawAmount)
+}

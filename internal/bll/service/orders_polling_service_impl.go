@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
@@ -41,7 +40,7 @@ func NewOrdersPollingService(ctx context.Context, baseURI string, orderRepo _rep
 	}
 }
 
-func (ops *OrdersPollingServiceImpl) Start(ctx context.Context) error {
+func (ops *OrdersPollingServiceImpl) Start() error {
 	ops.log.Info("Starting Order Polling Service")
 	defer ops.log.Info("Done starting Order Polling Service")
 	// stop ctx
@@ -64,7 +63,7 @@ func (ops *OrdersPollingServiceImpl) Start(ctx context.Context) error {
 	return nil
 }
 
-func (ops *OrdersPollingServiceImpl) Stop(ctx context.Context) error {
+func (ops *OrdersPollingServiceImpl) Stop() error {
 	ops.log.Info("Stopping Order Polling Service")
 	defer ops.log.Info("Done stopping Order Polling Service")
 	// stop timer
@@ -150,12 +149,7 @@ func (ops *OrdersPollingServiceImpl) worker(stopCtx context.Context, index int, 
 		case id := <-ops.queue:
 			ops.log.Infof("processing order id=[%s] worker index [%v] start", id, index)
 			if err := ops.processSingleOrder(id); err != nil {
-				var lsErr *_lsc.LSClientError
-				if errors.As(err, &lsErr) {
-					go ops.processLSError(lsErr, id)
-				} else {
-					ops.log.Errorf("error processing order id=[%s] worker index [%v] error: %v", id, index, err)
-				}
+				ops.log.Errorf("error processing order id=[%s] worker index [%v] error: %v", id, index, err)
 			}
 
 			ops.log.Infof("processing order id=[%s] worker index [%v] finished, sleep [%v]", id, index, sleepTime)
@@ -171,6 +165,10 @@ func (ops *OrdersPollingServiceImpl) processSingleOrder(orderID string) error {
 	// check client response
 	if err != nil {
 		return err
+	}
+	if dto == nil {
+		ops.log.Warnf("order id [%s] not exists in loyalty system", orderID)
+		return nil
 	}
 	newModel, err := ops.toModel(dto)
 	if err != nil {
@@ -194,10 +192,6 @@ func (ops *OrdersPollingServiceImpl) processSingleOrder(orderID string) error {
 	}
 
 	return nil
-}
-
-func (ops *OrdersPollingServiceImpl) processLSError(lsErr *_lsc.LSClientError, id string) {
-
 }
 
 func (ops *OrdersPollingServiceImpl) toModel(dto *_dto.LSOrderDto) (*_mod.Order, error) {

@@ -13,22 +13,23 @@ import (
 	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
 	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
-	_handler "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
 	_hnd "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
+	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
 	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
 type App struct {
-	DB             _db.DB
-	Log            _log.AppLogger
-	Conf           *_cfg.Config
-	Router         _handler.AppRouter
-	withdrawRepo   _rep.WithdrawRepository
-	orderRepo      _rep.OrderRepository
-	accountRepo    _rep.AccountRepository
-	userRepo       _rep.UserRepository
-	accountService _svc.AccountService
-	authService    _svc.AuthService
+	DB               _db.DB
+	Log              _log.AppLogger
+	Conf             *_cfg.Config
+	Router           _hnd.AppRouter
+	withdrawRepo     _rep.WithdrawRepository
+	orderRepo        _rep.OrderRepository
+	accountRepo      _rep.AccountRepository
+	userRepo         _rep.UserRepository
+	accountService   _svc.AccountService
+	authService      _svc.AuthService
+	orderPollService _svc.OrdersPollingService
 }
 
 func NewApp() *App {
@@ -96,6 +97,10 @@ func (app *App) Run() error {
 }
 
 func (app *App) Close() error {
+	if err := app.orderPollService.Stop(); err != nil {
+		return err
+	}
+
 	if err := _db.CloseDB(app.DB); err != nil {
 		return err
 	}
@@ -170,7 +175,11 @@ func (app *App) initDependencies() error {
 }
 
 func (app *App) initStartupServices() error {
-	// ToDo: implement
+	// polling service
+	app.orderPollService = _svc.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
+	if err := app.orderPollService.Start(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -189,9 +198,7 @@ func (app *App) gracefulShutdown() {
 	// awaiting signal
 	<-sig
 
-	//if err := _db.CloseDB(app.DB); err != nil {
-	//	app.Log.Errorf("Error closing database: [%v]", err)
-	//}
+	_utl.CloseOnly(app)
 
 	app.Log.Info("Graceful shutdown server done")
 

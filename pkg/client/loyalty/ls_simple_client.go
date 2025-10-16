@@ -43,6 +43,9 @@ func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string, toke
 		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), -1, err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNoContent {
+		return nil, nil
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s] with status code [%v]", orderNumber, resp.StatusCode), resp.StatusCode, nil)
 	}

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"io"
 	"net/http"
 
 	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
@@ -13,21 +12,10 @@ func (cr *AppChiRouter) postApiUserOrders(rw http.ResponseWriter, r *http.Reques
 	cr.log.Debug("postApiUserOrders start")
 	defer cr.log.Debug("postApiUserOrders finish")
 
-	//if r.Header.Get("Content-Type") != "text/plain" {
-	//	http.Error(rw, "Content-Type not supported, supported text/plain", http.StatusBadRequest)
-	//
-	//	return
-	//}
-	bytes, err := io.ReadAll(r.Body)
 	defer _utl.CloseOnly(r.Body)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-
-		return
-	}
 
 	// ToDo: make a table ? think
-	if err := cr.usersFacade.CreateOrder(r.Context(), bytes); err != nil {
+	if err := cr.usersFacade.CreateOrder(r.Context(), r.Body); err != nil {
 		// 200
 		if errors.As(err, &_err.BllOrderAlreadyExistsCurrentErr) {
 			rw.WriteHeader(http.StatusOK)

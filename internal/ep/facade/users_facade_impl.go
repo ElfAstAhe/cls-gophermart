@@ -2,7 +2,10 @@ package facade
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 
+	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
 	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
 	_dto "github.com/ElfAstAhe/cls-gophermart/internal/ep/dto/v1"
 	_map "github.com/ElfAstAhe/cls-gophermart/internal/ep/mapper"
@@ -11,11 +14,13 @@ import (
 
 type UsersFacadeImpl struct {
 	accountService _svc.AccountService
+	log            _log.AppLogger
 }
 
-func NewUsersFacadeImpl(accountSvc _svc.AccountService) *UsersFacadeImpl {
+func NewUsersFacadeImpl(accountSvc _svc.AccountService, logger _log.AppLogger) *UsersFacadeImpl {
 	return &UsersFacadeImpl{
 		accountService: accountSvc,
+		log:            logger.GetLogger("UsersFacadeImpl"),
 	}
 }
 
@@ -67,20 +72,30 @@ func (ufi *UsersFacadeImpl) ListWithdrawals(ctx context.Context) ([]*_dto.Withdr
 	return dtoList, nil
 }
 
-func (ufi *UsersFacadeImpl) CreateOrder(ctx context.Context, orderNum []byte) error {
+func (ufi *UsersFacadeImpl) CreateOrder(ctx context.Context, orderNum io.Reader) error {
 	userID := ctx.Value("user_id")
 	if userID == nil {
 		return _err.NewAuthUnauthorizedError("user_id not found in context")
 	}
+	buf, err := io.ReadAll(orderNum)
+	if err != nil {
+		return err
+	}
 
-	return ufi.accountService.CreateOrder(ctx, userID.(string), string(orderNum))
+	return ufi.accountService.CreateOrder(ctx, userID.(string), string(buf))
 }
 
-func (ufi *UsersFacadeImpl) CreateWithdraw(ctx context.Context, request *_dto.WithdrawDto) error {
+func (ufi *UsersFacadeImpl) CreateWithdraw(ctx context.Context, withdraw io.Reader) error {
 	userID := ctx.Value("user_id")
 	if userID == nil {
 		return _err.NewAuthUnauthorizedError("user_id not found in context")
 	}
+	dec := json.NewDecoder(withdraw)
+	dto := &_dto.WithdrawDto{}
+	err := dec.Decode(dto)
+	if err != nil {
+		return err
+	}
 
-	return ufi.accountService.Withdraw(ctx, userID.(string), request.Order, request.WithdrawAmount)
+	return ufi.accountService.Withdraw(ctx, userID.(string), dto.Order, dto.WithdrawAmount)
 }

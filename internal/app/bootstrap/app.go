@@ -31,6 +31,7 @@ type App struct {
 	authService      _svc.AuthService
 	orderPollService _svc.OrdersPollingService
 	usersFacade      _fce.UsersFacade
+	authFacade       _fce.AuthFacade
 	Router           _hnd.AppRouter
 }
 
@@ -175,7 +176,8 @@ func (app *App) initDependencies() error {
 	app.authService = _svc.NewAuthService(app.userRepo)
 
 	// facade
-	app.usersFacade = _fce.NewUsersFacadeImpl(app.accountService)
+	app.usersFacade = _fce.NewUsersFacadeImpl(app.accountService, app.Log)
+	app.authFacade = _fce.NewAuthFacadeImpl(app.authService, app.Log)
 
 	return nil
 }
@@ -190,7 +192,7 @@ func (app *App) initStartupServices() error {
 }
 
 func (app *App) initRouter() error {
-	app.Router = _hnd.NewChiRouter(app.Conf, app.usersFacade, app.Log)
+	app.Router = _hnd.NewChiRouter(app.Conf, app.usersFacade, app.authFacade, app.Log)
 
 	return nil
 }

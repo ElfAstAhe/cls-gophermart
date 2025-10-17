@@ -30,6 +30,7 @@ func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request
 	} else {
 		rw.WriteHeader(http.StatusOK)
 	}
+	rw.Header().Set("Content-Type", "application/json")
 
 	enc := json.NewEncoder(rw)
 	if err := enc.Encode(dtoList); err != nil {

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -21,12 +21,12 @@ const (
 )
 
 type AccountPgRepository struct {
-	db           _db.DB
-	withdrawRepo _rep.WithdrawRepository
-	orderRepo    _rep.OrderRepository
+	db           db.DB
+	withdrawRepo repository.WithdrawRepository
+	orderRepo    repository.OrderRepository
 }
 
-func NewAccountPgRepository(db _db.DB, withdrawRepository _rep.WithdrawRepository, orderRepository _rep.OrderRepository) *AccountPgRepository {
+func NewAccountPgRepository(db db.DB, withdrawRepository repository.WithdrawRepository, orderRepository repository.OrderRepository) *AccountPgRepository {
 	return &AccountPgRepository{
 		db:           db,
 		withdrawRepo: withdrawRepository,
@@ -34,7 +34,7 @@ func NewAccountPgRepository(db _db.DB, withdrawRepository _rep.WithdrawRepositor
 	}
 }
 
-func (a *AccountPgRepository) Find(ctx context.Context, id string) (*_mod.Account, error) {
+func (a *AccountPgRepository) Find(ctx context.Context, id string) (*model.Account, error) {
 	if strings.TrimSpace(id) == "" {
 		return nil, nil
 	}
@@ -42,7 +42,7 @@ func (a *AccountPgRepository) Find(ctx context.Context, id string) (*_mod.Accoun
 	return a.findSingle(ctx, pgFindAccountSql, id)
 }
 
-func (a *AccountPgRepository) FindByUser(ctx context.Context, userID string) (*_mod.Account, error) {
+func (a *AccountPgRepository) FindByUser(ctx context.Context, userID string) (*model.Account, error) {
 	if strings.TrimSpace(userID) == "" {
 		return nil, nil
 	}
@@ -50,10 +50,10 @@ func (a *AccountPgRepository) FindByUser(ctx context.Context, userID string) (*_
 	return a.findSingle(ctx, pgFindAccountByUserSql, userID)
 }
 
-func (a *AccountPgRepository) findSingle(ctx context.Context, query string, param any) (*_mod.Account, error) {
+func (a *AccountPgRepository) findSingle(ctx context.Context, query string, param any) (*model.Account, error) {
 	row := a.db.GetDB().QueryRowContext(ctx, query, param)
 
-	model := &_mod.Account{}
+	model := &model.Account{}
 	err := row.Scan(&model.ID, &model.Person)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
@@ -74,7 +74,7 @@ func (a *AccountPgRepository) findSingle(ctx context.Context, query string, para
 	return model, nil
 }
 
-func (a *AccountPgRepository) Create(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error) {
+func (a *AccountPgRepository) Create(ctx context.Context, userID string, account *model.Account) (*model.Account, error) {
 	account.ID = uuid.New().String()
 
 	_, err := a.db.GetDB().ExecContext(ctx, pgCreateAccountSql, account.ID, userID, account.Person)
@@ -85,7 +85,7 @@ func (a *AccountPgRepository) Create(ctx context.Context, userID string, account
 	return account, nil
 }
 
-func (a *AccountPgRepository) Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error) {
+func (a *AccountPgRepository) Change(ctx context.Context, userID string, account *model.Account) (*model.Account, error) {
 	_, err := a.db.GetDB().ExecContext(ctx, pgChangeAccountSql, account.ID, account.Person)
 	if err != nil {
 		return nil, err
@@ -96,12 +96,12 @@ func (a *AccountPgRepository) Change(ctx context.Context, userID string, account
 
 // GetBalance ToDo: maybe need to move into separate repository
 // GetBalance get account current full balance info
-func (a *AccountPgRepository) GetBalance(ctx context.Context, id string) (*_mod.AccountBalance, error) {
+func (a *AccountPgRepository) GetBalance(ctx context.Context, id string) (*model.AccountBalance, error) {
 	row := a.db.GetDB().QueryRowContext(ctx, pgGetAccountBalanceSql, id)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
-	model := &_mod.AccountBalance{}
+	model := &model.AccountBalance{}
 	err := row.Scan(&model.ID, &model.Balance, &model.AccrualsAmount, &model.WithdrawalsAmount)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil

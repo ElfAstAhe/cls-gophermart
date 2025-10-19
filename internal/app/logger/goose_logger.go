@@ -2,10 +2,10 @@ package logger
 
 // GooseLogger is implementation of goose.Logger interface
 type GooseLogger struct {
-	log AppLogger
+	log Logger
 }
 
-func NewGooseLogger(log AppLogger) *GooseLogger {
+func NewGooseLogger(log Logger) *GooseLogger {
 	return &GooseLogger{
 		log: log,
 	}

@@ -6,10 +6,10 @@ import (
 	"errors"
 	"strings"
 
-	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 	"github.com/google/uuid"
 )
 
@@ -21,34 +21,34 @@ const (
 )
 
 type WithdrawPgRepository struct {
-	db _db.DB
+	db db.DB
 }
 
-func NewWithdrawPgRepository(db _db.DB) *WithdrawPgRepository {
+func NewWithdrawPgRepository(db db.DB) *WithdrawPgRepository {
 	return &WithdrawPgRepository{
 		db: db,
 	}
 }
 
-func (wr *WithdrawPgRepository) Find(ctx context.Context, id string) (*_mod.Withdraw, error) {
+func (wr *WithdrawPgRepository) Find(ctx context.Context, id string) (*model.Withdraw, error) {
 	if strings.TrimSpace(id) == "" {
 		return nil, nil
 	}
 
-	model := _mod.Withdraw{}
+	withdraw := model.Withdraw{}
 	row := wr.db.GetDB().QueryRowContext(ctx, pgFindWithdrawSql, id)
-	err := row.Scan(&model.ID, &model.OrderNumber, &model.WithdrawAmount, &model.ProcessedAt)
+	err := row.Scan(&withdraw.ID, &withdraw.OrderNumber, &withdraw.WithdrawAmount, &withdraw.ProcessedAt)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
 
-	return &model, nil
+	return &withdraw, nil
 }
 
-func (wr *WithdrawPgRepository) ListByAccount(ctx context.Context, accountID string) ([]*_mod.Withdraw, error) {
-	res := make([]*_mod.Withdraw, 0)
+func (wr *WithdrawPgRepository) ListByAccount(ctx context.Context, accountID string) ([]*model.Withdraw, error) {
+	res := make([]*model.Withdraw, 0)
 	if strings.TrimSpace(accountID) == "" {
 		return res, nil
 	}
@@ -57,18 +57,18 @@ func (wr *WithdrawPgRepository) ListByAccount(ctx context.Context, accountID str
 	if err != nil {
 		return nil, err
 	}
-	defer _utl.CloseOnly(rows)
+	defer utils.CloseOnly(rows)
 
 	for rows.Next() {
-		var model _mod.Withdraw
-		err := rows.Scan(&model.ID, &model.OrderNumber, &model.WithdrawAmount, &model.ProcessedAt)
+		var withdraw model.Withdraw
+		err := rows.Scan(&withdraw.ID, &withdraw.OrderNumber, &withdraw.WithdrawAmount, &withdraw.ProcessedAt)
 		if err != nil && errors.Is(err, sql.ErrNoRows) {
 			return res, nil
 		} else if err != nil {
 			return nil, err
 		}
 
-		res = append(res, &model)
+		res = append(res, &withdraw)
 	}
 	if rows.Err() != nil {
 		return nil, rows.Err()
@@ -88,7 +88,7 @@ func (wr *WithdrawPgRepository) GetWithdrawsByAccount(ctx context.Context, accou
 	return withdrawsSum, nil
 }
 
-func (wr *WithdrawPgRepository) Create(ctx context.Context, accountID string, withdraw *_mod.Withdraw) (*_mod.Withdraw, error) {
+func (wr *WithdrawPgRepository) Create(ctx context.Context, accountID string, withdraw *model.Withdraw) (*model.Withdraw, error) {
 	if err := wr.validateInstance(withdraw); err != nil {
 		return nil, err
 	}
@@ -102,14 +102,14 @@ func (wr *WithdrawPgRepository) Create(ctx context.Context, accountID string, wi
 	return withdraw, nil
 }
 
-func (wr *WithdrawPgRepository) validateInstance(instance *_mod.Withdraw) error {
+func (wr *WithdrawPgRepository) validateInstance(instance *model.Withdraw) error {
 	if instance == nil {
-		return _err.NewModelValidationError("withdraw", "withdraw is null", nil)
+		return errs.NewModelValidationError("withdraw", "withdraw is null", nil)
 	}
 	if !(instance.WithdrawAmount > 0.0) {
-		return _err.NewModelValidationError("withdraw", "withdraw amount must be greater zero", nil)
+		return errs.NewModelValidationError("withdraw", "withdraw amount must be greater zero", nil)
 	}
-	if err := _utl.ValidateOrderNumberByLuhn(instance.OrderNumber); err != nil {
+	if err := utils.ValidateOrderNumberByLuhn(instance.OrderNumber); err != nil {
 		return err
 	}
 

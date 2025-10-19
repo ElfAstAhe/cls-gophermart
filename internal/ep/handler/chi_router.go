@@ -4,24 +4,24 @@ import (
 	"net/http"
 	"time"
 
-	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
-	_fce "github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
-	_cpr "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/compress"
-	_hlg "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/logger"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/compress"
+	mlog "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type AppChiRouter struct {
 	router      *chi.Mux
-	log         _log.AppLogger
-	conf        *_cfg.Config
-	usersFacade _fce.UsersFacade
-	authFacade  _fce.AuthFacade
+	log         logger.Logger
+	conf        *config.Config
+	usersFacade facade.UsersFacade
+	authFacade  facade.AuthFacade
 }
 
-func NewChiRouter(config *_cfg.Config, usersFacade _fce.UsersFacade, authFacade _fce.AuthFacade, logger _log.AppLogger) *AppChiRouter {
+func NewChiRouter(config *config.Config, usersFacade facade.UsersFacade, authFacade facade.AuthFacade, logger logger.Logger) *AppChiRouter {
 	res := &AppChiRouter{
 		router:      chi.NewRouter(),
 		log:         logger.GetLogger("app router"),
@@ -40,12 +40,12 @@ func (cr *AppChiRouter) GetRouter() http.Handler {
 	return cr.router
 }
 
-func (cr *AppChiRouter) setupMiddleware(logger _log.AppLogger) {
+func (cr *AppChiRouter) setupMiddleware(logger logger.Logger) {
 	cr.router.Use(middleware.RequestID)
 	cr.router.Use(middleware.RealIP)
-	cr.router.Use(_cpr.CustomCompress(_cpr.DefaultCompressionLevel, _cpr.ContentTypeApplicationJSON, _cpr.ContentTypeTextHTML))
-	cr.router.Use(_cpr.CustomDecompress)
-	cr.router.Use(_hlg.NewHTTPLoggerMiddleware(logger).CustomInfoHTTPLogger)
+	cr.router.Use(compress.CustomCompress(compress.DefaultCompressionLevel, compress.ContentTypeApplicationJSON, compress.ContentTypeTextHTML))
+	cr.router.Use(compress.CustomDecompress)
+	cr.router.Use(mlog.NewHTTPLoggerMiddleware(logger).CustomInfoHTTPLogger)
 	cr.router.Use(middleware.Recoverer)
 	cr.router.Use(middleware.Timeout(60 * time.Second))
 }

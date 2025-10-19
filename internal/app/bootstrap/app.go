@@ -7,37 +7,37 @@ import (
 	"os/signal"
 	"syscall"
 
-	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
-	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
-	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
-	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
-	_repi "github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
-	_fce "github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
-	_hnd "github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
-	_migr "github.com/ElfAstAhe/cls-gophermart/migrations"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	irepo "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
+	"github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	"github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
 type App struct {
-	DB               _db.DB
-	Log              _log.AppLogger
-	Conf             *_cfg.Config
-	withdrawRepo     _rep.WithdrawRepository
-	orderRepo        _rep.OrderRepository
-	accountRepo      _rep.AccountRepository
-	userRepo         _rep.UserRepository
-	accountService   _svc.AccountService
-	authService      _svc.AuthService
-	orderPollService _svc.OrdersPollingService
-	usersFacade      _fce.UsersFacade
-	authFacade       _fce.AuthFacade
-	Router           _hnd.AppRouter
+	DB               db.DB
+	Log              logger.Logger
+	Conf             *config.Config
+	withdrawRepo     irepo.WithdrawRepository
+	orderRepo        irepo.OrderRepository
+	accountRepo      irepo.AccountRepository
+	userRepo         irepo.UserRepository
+	accountService   service.AccountService
+	authService      service.AuthService
+	orderPollService service.OrdersPollingService
+	usersFacade      facade.UsersFacade
+	authFacade       facade.AuthFacade
+	Router           handler.AppRouter
 }
 
 func NewApp() *App {
 	return &App{
-		Log: _log.NewStartupZapLogger(),
+		Log: logger.NewStartupZapLogger(),
 	}
 }
 
@@ -104,7 +104,7 @@ func (app *App) Close() error {
 		return err
 	}
 
-	if err := _db.CloseDB(app.DB); err != nil {
+	if err := db.CloseDB(app.DB); err != nil {
 		return err
 	}
 
@@ -116,7 +116,7 @@ func (app *App) Close() error {
 }
 
 func (app *App) loadConfig() error {
-	appConf := _cfg.NewConfig()
+	appConf := config.NewConfig()
 	err := appConf.LoadConfig()
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (app *App) loadConfig() error {
 }
 
 func (app *App) initLogger() error {
-	fullLogger, err := _log.NewZapLogger(app.Conf.LogLevel, app.Conf.LogFilePath)
+	fullLogger, err := logger.NewZapLogger(app.Conf.LogLevel, app.Conf.LogFilePath)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (app *App) initLogger() error {
 }
 
 func (app *App) initDatabase() error {
-	res, err := _db.NewDB(_cfg.DBKindPostgres, app.Conf.DBDsn)
+	res, err := db.NewDB(config.DBKindPostgres, app.Conf.DBDsn)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (app *App) initDatabase() error {
 }
 
 func (app *App) migrateDatabase() error {
-	migrator, err := _migr.NewGooseDBMigrator(context.Background(), app.DB.GetDB(), app.Log.GetLogger("migration"))
+	migrator, err := migrations.NewGooseDBMigrator(context.Background(), app.DB.GetDB(), app.Log.GetLogger("migration"))
 	if err != nil {
 		return err
 	}
@@ -165,19 +165,19 @@ func (app *App) migrateDatabase() error {
 
 func (app *App) initDependencies() error {
 	// repositories
-	app.withdrawRepo = _repi.NewWithdrawPgRepository(app.DB)
-	app.orderRepo = _repi.NewOrderPgRepository(app.DB)
-	app.accountRepo = _repi.NewAccountPgRepository(app.DB, app.withdrawRepo, app.orderRepo)
-	app.userRepo = _repi.NewUserPgRepository(app.DB, app.accountRepo)
+	app.withdrawRepo = repository.NewWithdrawPgRepository(app.DB)
+	app.orderRepo = repository.NewOrderPgRepository(app.DB)
+	app.accountRepo = repository.NewAccountPgRepository(app.DB, app.withdrawRepo, app.orderRepo)
+	app.userRepo = repository.NewUserPgRepository(app.DB, app.accountRepo)
 
 	// services
-	app.orderPollService = _svc.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
-	app.accountService = _svc.NewAccountServiceImpl(app.orderPollService, app.accountRepo, app.withdrawRepo, app.orderRepo)
-	app.authService = _svc.NewAuthService(app.userRepo)
+	app.orderPollService = service.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
+	app.accountService = service.NewAccountServiceImpl(app.orderPollService, app.accountRepo, app.withdrawRepo, app.orderRepo)
+	app.authService = service.NewAuthService(app.userRepo)
 
 	// facade
-	app.usersFacade = _fce.NewUsersFacadeImpl(app.accountService, app.Log)
-	app.authFacade = _fce.NewAuthFacadeImpl(app.authService, app.Log)
+	app.usersFacade = facade.NewUsersFacadeImpl(app.accountService, app.Log)
+	app.authFacade = facade.NewAuthFacadeImpl(app.authService, app.Log)
 
 	return nil
 }
@@ -192,7 +192,7 @@ func (app *App) initStartupServices() error {
 }
 
 func (app *App) initRouter() error {
-	app.Router = _hnd.NewChiRouter(app.Conf, app.usersFacade, app.authFacade, app.Log)
+	app.Router = handler.NewChiRouter(app.Conf, app.usersFacade, app.authFacade, app.Log)
 
 	return nil
 }
@@ -205,7 +205,7 @@ func (app *App) gracefulShutdown() {
 	// awaiting signal
 	<-sig
 
-	_utl.CloseOnly(app)
+	utils.CloseOnly(app)
 
 	app.Log.Info("Graceful shutdown server done")
 

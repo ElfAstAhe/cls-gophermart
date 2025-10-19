@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_repo "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
-	_lsc "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty"
-	_dto "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	"github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty"
+	ldto "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
+	errors "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
 type OrdersPollingServiceImpl struct {
@@ -22,12 +22,12 @@ type OrdersPollingServiceImpl struct {
 	schedulerTimer *time.Timer
 	wg             *sync.WaitGroup
 	baseURI        string
-	orderRepo      _repo.OrderRepository
-	log            _log.AppLogger
-	lsClient       _lsc.LSClient
+	orderRepo      repository.OrderRepository
+	log            logger.Logger
+	lsClient       loyalty.LSClient
 }
 
-func NewOrdersPollingService(ctx context.Context, baseURI string, orderRepo _repo.OrderRepository, logger _log.AppLogger) OrdersPollingService {
+func NewOrdersPollingService(ctx context.Context, baseURI string, orderRepo repository.OrderRepository, logger logger.Logger) OrdersPollingService {
 	return &OrdersPollingServiceImpl{
 		parentCtx:      ctx,
 		stopCtx:        nil,
@@ -108,7 +108,7 @@ func (ops *OrdersPollingServiceImpl) processEvent(stopCtx context.Context) {
 
 		return
 	}
-	orders, err := ops.orderRepo.ListUnfinished(stopCtx, _mod.OrderStatusNew, _mod.OrderStatusProcessing)
+	orders, err := ops.orderRepo.ListUnfinished(stopCtx, model.OrderStatusNew, model.OrderStatusProcessing)
 	if err != nil {
 		ops.log.Errorf("error get unfinished orders: %v", err)
 	}
@@ -124,7 +124,7 @@ func (ops *OrdersPollingServiceImpl) processEvent(stopCtx context.Context) {
 
 func (ops *OrdersPollingServiceImpl) createWorkerPool(stopCtx context.Context, workerCount int) error {
 	if workerCount <= 0 {
-		return _err.NewAppInvalidArgumentError("workerCount", workerCount)
+		return errors.NewAppInvalidArgumentError("workerCount", workerCount)
 	}
 
 	for index := 0; index < workerCount; index++ {
@@ -195,31 +195,31 @@ func (ops *OrdersPollingServiceImpl) processSingleOrder(orderID string) error {
 	return nil
 }
 
-func (ops *OrdersPollingServiceImpl) toModel(dto *_dto.LSOrderDto) (*_mod.Order, error) {
+func (ops *OrdersPollingServiceImpl) toModel(dto *ldto.LSOrderDto) (*model.Order, error) {
 	if dto == nil {
-		return nil, _err.NewAppInvalidArgumentError("order dto", nil)
+		return nil, errors.NewAppInvalidArgumentError("order dto", nil)
 	}
 	status, err := ops.toModelStatus(dto.Status)
 	if err != nil {
 		return nil, err
 	}
 
-	return _mod.NewOrder(dto.Number, status, dto.AccrualAmount, time.Now()), nil
+	return model.NewOrder(dto.Number, status, dto.AccrualAmount, time.Now()), nil
 }
 
 func (ops *OrdersPollingServiceImpl) toModelStatus(dtoStatus string) (string, error) {
 	switch dtoStatus {
-	case _dto.LSOrderStatusRegistered:
-		return _mod.OrderStatusNew, nil
-	case _dto.LSOrderStatusProcessing:
-		return _mod.OrderStatusProcessing, nil
-	case _dto.LSOrderStatusInvalid:
-		return _mod.OrderStatusInvalid, nil
-	case _dto.LSOrderStatusProcessed:
-		return _mod.OrderStatusProcessed, nil
+	case ldto.LSOrderStatusRegistered:
+		return model.OrderStatusNew, nil
+	case ldto.LSOrderStatusProcessing:
+		return model.OrderStatusProcessing, nil
+	case ldto.LSOrderStatusInvalid:
+		return model.OrderStatusInvalid, nil
+	case ldto.LSOrderStatusProcessed:
+		return model.OrderStatusProcessed, nil
 	}
 
-	return "", _err.NewAppInvalidArgumentError("dtoStatus", dtoStatus)
+	return "", errors.NewAppInvalidArgumentError("dtoStatus", dtoStatus)
 }
 
 func (ops *OrdersPollingServiceImpl) Add(ID string) {

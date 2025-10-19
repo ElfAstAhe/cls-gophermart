@@ -1,6 +1,6 @@
 package logger
 
-type AppLogger interface {
+type Logger interface {
 	Close() error
 
 	Error(args ...interface{})
@@ -12,5 +12,5 @@ type AppLogger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 
-	GetLogger(logicEntry string) AppLogger
+	GetLogger(logicEntry string) Logger
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
 )
 
 func CustomDecompress(next http.Handler) http.Handler {
@@ -17,7 +17,7 @@ func CustomDecompress(next http.Handler) http.Handler {
 
 				return
 			}
-			defer _utl.CloseOnly(dr)
+			defer utils.CloseOnly(dr)
 
 			r.Body = dr
 		}

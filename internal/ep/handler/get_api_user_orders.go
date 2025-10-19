@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
 func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request) {
@@ -14,7 +14,7 @@ func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request
 
 	dtoList, err := cr.usersFacade.ListOrders(r.Context())
 	if err != nil {
-		if errors.As(err, &_err.AuthUnauthorizedErr) {
+		if errors.As(err, &error.AuthUnauthorizedErr) {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
 
 			return

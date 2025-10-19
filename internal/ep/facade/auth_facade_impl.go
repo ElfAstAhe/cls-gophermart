@@ -4,16 +4,16 @@ import (
 	"context"
 	"io"
 
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
-	_svc "github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/service"
 )
 
 type AuthFacadeImpl struct {
-	authService _svc.AuthService
-	log         _log.AppLogger
+	authService service.AuthService
+	log         logger.Logger
 }
 
-func NewAuthFacadeImpl(authService _svc.AuthService, logger _log.AppLogger) *AuthFacadeImpl {
+func NewAuthFacadeImpl(authService service.AuthService, logger logger.Logger) *AuthFacadeImpl {
 	return &AuthFacadeImpl{
 		authService: authService,
 		log:         logger.GetLogger("AuthFacadeImpl"),

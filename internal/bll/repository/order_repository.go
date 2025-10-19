@@ -3,14 +3,14 @@ package repository
 import (
 	"context"
 
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 )
 
 type OrderRepository interface {
-	Find(ctx context.Context, id string) (*_mod.Order, error)
-	FindByNumber(ctx context.Context, number string) (*_mod.Order, error)
-	ListByAccount(ctx context.Context, accountId string) ([]*_mod.Order, error)
-	ListUnfinished(ctx context.Context, statuses ...string) ([]*_mod.Order, error)
-	Create(ctx context.Context, accountId string, order *_mod.Order) (*_mod.Order, error)
-	Change(ctx context.Context, order *_mod.Order) (*_mod.Order, error)
+	Find(ctx context.Context, id string) (*model.Order, error)
+	FindByNumber(ctx context.Context, number string) (*model.Order, error)
+	ListByAccount(ctx context.Context, accountId string) ([]*model.Order, error)
+	ListUnfinished(ctx context.Context, statuses ...string) ([]*model.Order, error)
+	Create(ctx context.Context, accountId string, order *model.Order) (*model.Order, error)
+	Change(ctx context.Context, order *model.Order) (*model.Order, error)
 }

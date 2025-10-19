@@ -3,18 +3,18 @@ package repository
 import (
 	"context"
 
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 )
 
 type AccountRepository interface {
 	// Find search by synthetic key
-	Find(ctx context.Context, id string) (*_mod.Account, error)
+	Find(ctx context.Context, id string) (*model.Account, error)
 	// FindByUser search by bl key (one to one link)
-	FindByUser(ctx context.Context, userID string) (*_mod.Account, error)
+	FindByUser(ctx context.Context, userID string) (*model.Account, error)
 	// Create new account
-	Create(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
+	Create(ctx context.Context, userID string, account *model.Account) (*model.Account, error)
 	// Change account attributes
-	Change(ctx context.Context, userID string, account *_mod.Account) (*_mod.Account, error)
+	Change(ctx context.Context, userID string, account *model.Account) (*model.Account, error)
 	// GetBalance get account current full balance info
-	GetBalance(ctx context.Context, id string) (*_mod.AccountBalance, error)
+	GetBalance(ctx context.Context, id string) (*model.AccountBalance, error)
 }

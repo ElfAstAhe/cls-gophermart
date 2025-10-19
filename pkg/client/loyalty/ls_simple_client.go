@@ -19,10 +19,10 @@ const (
 type LSSimpleClient struct {
 	client  *http.Client
 	baseURL string
-	log     _log.AppLogger
+	log     _log.Logger
 }
 
-func NewLSSimpleClient(baseURL string, timeOut time.Duration, logger _log.AppLogger) (*LSSimpleClient, error) {
+func NewLSSimpleClient(baseURL string, timeOut time.Duration, logger _log.Logger) (*LSSimpleClient, error) {
 	return &LSSimpleClient{
 		client: &http.Client{
 			Timeout: timeOut,

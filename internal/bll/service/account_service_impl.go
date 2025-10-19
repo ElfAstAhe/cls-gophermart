@@ -6,20 +6,20 @@ import (
 	"strings"
 	"time"
 
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_repo "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	errors "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
 type AccountServiceImpl struct {
-	accountRepo      _repo.AccountRepository
-	withdrawRepo     _repo.WithdrawRepository
-	orderRepo        _repo.OrderRepository
+	accountRepo      repository.AccountRepository
+	withdrawRepo     repository.WithdrawRepository
+	orderRepo        repository.OrderRepository
 	orderPollService OrdersPollingService
 }
 
-func NewAccountServiceImpl(orderPollService OrdersPollingService, accountRepo _repo.AccountRepository, withdrawRepo _repo.WithdrawRepository, orderRepo _repo.OrderRepository) *AccountServiceImpl {
+func NewAccountServiceImpl(orderPollService OrdersPollingService, accountRepo repository.AccountRepository, withdrawRepo repository.WithdrawRepository, orderRepo repository.OrderRepository) *AccountServiceImpl {
 	return &AccountServiceImpl{
 		accountRepo:      accountRepo,
 		withdrawRepo:     withdrawRepo,
@@ -28,7 +28,7 @@ func NewAccountServiceImpl(orderPollService OrdersPollingService, accountRepo _r
 	}
 }
 
-func (a *AccountServiceImpl) GetUserBalance(ctx context.Context, userID string) (*_mod.AccountBalance, error) {
+func (a *AccountServiceImpl) GetUserBalance(ctx context.Context, userID string) (*model.AccountBalance, error) {
 	accountID, err := a.validateAndGetAccount(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -57,10 +57,10 @@ func (a *AccountServiceImpl) Withdraw(ctx context.Context, userID string, orderN
 		return err
 	}
 	if withdrawAmount > balance.Balance {
-		return _err.NewBllInsufficientBalanceError(balance.Balance, withdrawAmount)
+		return errors.NewBllInsufficientBalanceError(balance.Balance, withdrawAmount)
 	}
 
-	model := _mod.NewWithdraw(orderNumber, withdrawAmount, time.Now())
+	model := model.NewWithdraw(orderNumber, withdrawAmount, time.Now())
 	if _, err := a.withdrawRepo.Create(ctx, accountID, model); err != nil {
 		return err
 	}
@@ -70,19 +70,19 @@ func (a *AccountServiceImpl) Withdraw(ctx context.Context, userID string, orderN
 
 func (a *AccountServiceImpl) validateWithdraw(userID string, orderNumber string, withdrawAmount float64) error {
 	if strings.TrimSpace(userID) == "" {
-		return _err.NewAuthUnauthorizedError("userID is null")
+		return errors.NewAuthUnauthorizedError("userID is null")
 	}
-	if err := _utl.ValidateOrderNumberByLuhn(orderNumber); err != nil {
+	if err := utils.ValidateOrderNumberByLuhn(orderNumber); err != nil {
 		return err
 	}
 	if withdrawAmount <= 0.0 {
-		return _err.NewAppInvalidArgumentError("WithdrawAmount", withdrawAmount)
+		return errors.NewAppInvalidArgumentError("WithdrawAmount", withdrawAmount)
 	}
 
 	return nil
 }
 
-func (a *AccountServiceImpl) ListAllWithdrawalsByUser(ctx context.Context, userID string) ([]*_mod.Withdraw, error) {
+func (a *AccountServiceImpl) ListAllWithdrawalsByUser(ctx context.Context, userID string) ([]*model.Withdraw, error) {
 	accountID, err := a.validateAndGetAccount(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -97,22 +97,22 @@ func (a *AccountServiceImpl) CreateOrder(ctx context.Context, userID string, ord
 		return err
 	}
 
-	if err := _utl.ValidateOrderNumberByLuhn(orderNumber); err != nil {
+	if err := utils.ValidateOrderNumberByLuhn(orderNumber); err != nil {
 		return err
 	}
 
-	model := _mod.NewOrder(orderNumber, _mod.OrderStatusNew, 0.0, time.Now())
-	if _, err := a.orderRepo.Create(ctx, accountID, model); err != nil {
+	_model := model.NewOrder(orderNumber, model.OrderStatusNew, 0.0, time.Now())
+	if _, err := a.orderRepo.Create(ctx, accountID, _model); err != nil {
 		return err
 	}
 
 	// add id for order poll
-	a.orderPollService.Add(model.ID)
+	a.orderPollService.Add(_model.ID)
 
 	return nil
 }
 
-func (a *AccountServiceImpl) ListAllOrdersByUser(ctx context.Context, userID string) ([]*_mod.Order, error) {
+func (a *AccountServiceImpl) ListAllOrdersByUser(ctx context.Context, userID string) ([]*model.Order, error) {
 	accountID, err := a.validateAndGetAccount(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -123,14 +123,14 @@ func (a *AccountServiceImpl) ListAllOrdersByUser(ctx context.Context, userID str
 
 func (a *AccountServiceImpl) validateAndGetAccount(ctx context.Context, userID string) (string, error) {
 	if strings.TrimSpace(userID) == "" {
-		return "", _err.NewAuthUnauthorizedError("userID is null")
+		return "", errors.NewAuthUnauthorizedError("userID is null")
 	}
 	account, err := a.accountRepo.FindByUser(ctx, userID)
 	if err != nil {
 		return "", err
 	}
 	if account == nil {
-		return "", _err.NewModelNotExistsError("account", fmt.Sprintf("userID=[%s]", userID))
+		return "", errors.NewModelNotExistsError("account", fmt.Sprintf("userID=[%s]", userID))
 	}
 
 	return account.ID, nil

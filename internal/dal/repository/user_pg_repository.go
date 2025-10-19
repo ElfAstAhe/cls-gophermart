@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"errors"
 
-	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_rep "github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 	"github.com/google/uuid"
 )
 
@@ -21,30 +21,30 @@ const (
 )
 
 type UserPgRepository struct {
-	db          _db.DB
-	accountRepo _rep.AccountRepository
+	db          db.DB
+	accountRepo repository.AccountRepository
 }
 
-func NewUserPgRepository(db _db.DB, accountRepo _rep.AccountRepository) *UserPgRepository {
+func NewUserPgRepository(db db.DB, accountRepo repository.AccountRepository) *UserPgRepository {
 	return &UserPgRepository{
 		db:          db,
 		accountRepo: accountRepo,
 	}
 }
 
-func (u *UserPgRepository) Find(ctx context.Context, id string) (*_mod.User, error) {
+func (u *UserPgRepository) Find(ctx context.Context, id string) (*model.User, error) {
 	return u.findSingle(ctx, pgFindUserSql, id)
 }
 
-func (u *UserPgRepository) FindByName(ctx context.Context, username string) (*_mod.User, error) {
+func (u *UserPgRepository) FindByName(ctx context.Context, username string) (*model.User, error) {
 	return u.findSingle(ctx, pgFindUserByNameSql, username)
 }
 
-func (u *UserPgRepository) findSingle(ctx context.Context, query string, param any) (*_mod.User, error) {
+func (u *UserPgRepository) findSingle(ctx context.Context, query string, param any) (*model.User, error) {
 	row := u.db.GetDB().QueryRowContext(ctx, query, param)
 
-	model := _mod.User{}
-	err := row.Scan(&model.ID, &model.Username, &model.Password, &model.Disabled)
+	user := model.User{}
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.Disabled)
 
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -52,10 +52,10 @@ func (u *UserPgRepository) findSingle(ctx context.Context, query string, param a
 		return nil, err
 	}
 
-	return &model, nil
+	return &user, nil
 }
 
-func (u *UserPgRepository) Create(ctx context.Context, user *_mod.User) (*_mod.User, error) {
+func (u *UserPgRepository) Create(ctx context.Context, user *model.User) (*model.User, error) {
 	if err := u.validateInstance(user); err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (u *UserPgRepository) Create(ctx context.Context, user *_mod.User) (*_mod.U
 	return user, nil
 }
 
-func (u *UserPgRepository) Change(ctx context.Context, user *_mod.User) (*_mod.User, error) {
+func (u *UserPgRepository) Change(ctx context.Context, user *model.User) (*model.User, error) {
 	if err := u.validateInstance(user); err != nil {
 		return nil, err
 	}
@@ -95,29 +95,29 @@ func (u *UserPgRepository) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *UserPgRepository) validateInstance(user *_mod.User) error {
+func (u *UserPgRepository) validateInstance(user *model.User) error {
 	if user == nil {
-		return _err.NewModelValidationError("user", "user is nil", nil)
+		return errs.NewModelValidationError("user", "user is nil", nil)
 	}
 
 	if user.Username == "" {
-		return _err.NewModelValidationError("user", "username is empty", nil)
+		return errs.NewModelValidationError("user", "username is empty", nil)
 	}
 
 	if user.Password == "" {
-		return _err.NewModelValidationError("user", "password is empty", nil)
+		return errs.NewModelValidationError("user", "password is empty", nil)
 	}
 
 	return nil
 }
 
-func (u *UserPgRepository) validateBL(ctx context.Context, user *_mod.User) error {
-	model, err := u.FindByName(ctx, user.Username)
+func (u *UserPgRepository) validateBL(ctx context.Context, user *model.User) error {
+	founded, err := u.FindByName(ctx, user.Username)
 	if err != nil {
 		return err
 	}
-	if model != nil {
-		return _err.NewModelAlreadyExistsError("user", user.Username)
+	if founded != nil {
+		return errs.NewModelAlreadyExistsError("user", user.Username)
 	}
 
 	return nil

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	_cfg "github.com/ElfAstAhe/cls-gophermart/internal/app/config"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -14,12 +14,7 @@ type postgresqlDB struct {
 	Dsn    string
 }
 
-var db *postgresqlDB
-
 func newPostgresqlDB(dsn string) (*postgresqlDB, error) {
-	if db != nil {
-		return db, nil
-	}
 	pg, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
@@ -36,7 +31,7 @@ func newPostgresqlDB(dsn string) (*postgresqlDB, error) {
 
 	return &postgresqlDB{
 		DB:     pg,
-		DBKind: _cfg.DBKindPostgres,
+		DBKind: config.DBKindPostgres,
 		Dsn:    dsn,
 	}, nil
 }

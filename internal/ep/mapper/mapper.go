@@ -1,62 +1,62 @@
 package mapper
 
 import (
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_dto "github.com/ElfAstAhe/cls-gophermart/internal/ep/dto/v1"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/dto/v1"
 )
 
-func ToBalanceDto(model *_mod.AccountBalance) *_dto.BalanceDto {
-	if model == nil {
+func ToBalanceDto(accBalance *model.AccountBalance) *v1.BalanceDto {
+	if accBalance == nil {
 		return nil
 	}
 
-	return _dto.NewBalanceDto(model.Balance, model.WithdrawalsAmount)
+	return v1.NewBalanceDto(accBalance.Balance, accBalance.WithdrawalsAmount)
 }
 
-func ToOrderDto(model *_mod.Order) *_dto.OrderDto {
-	if model == nil {
+func ToOrderDto(order *model.Order) *v1.OrderDto {
+	if order == nil {
 		return nil
 	}
 
-	return _dto.NewOrderDto(model.Number, toOrderStatusDto(model.Status), model.AccrualAmount, model.UploadedAt)
+	return v1.NewOrderDto(order.Number, toOrderStatusDto(order.Status), order.AccrualAmount, order.UploadedAt)
 }
 
-func ToOrderDtoList(models []*_mod.Order) []*_dto.OrderDto {
-	res := make([]*_dto.OrderDto, len(models))
-	for _, model := range models {
-		res = append(res, ToOrderDto(model))
+func ToOrderDtoList(orders []*model.Order) []*v1.OrderDto {
+	res := make([]*v1.OrderDto, len(orders))
+	for _, order := range orders {
+		res = append(res, ToOrderDto(order))
 	}
 
 	return res
 }
 
-func toOrderStatusDto(modelStatus string) _dto.OrderStatus {
-	switch modelStatus {
-	case _mod.OrderStatusNew:
-		return _dto.OrderStatusNew
-	case _mod.OrderStatusProcessing:
-		return _dto.OrderStatusProcessing
-	case _mod.OrderStatusInvalid:
-		return _dto.OrderStatusInvalid
-	case _mod.OrderStatusProcessed:
-		return _dto.OrderStatusProcessed
+func toOrderStatusDto(orderStatus string) v1.OrderStatus {
+	switch orderStatus {
+	case model.OrderStatusNew:
+		return v1.OrderStatusNew
+	case model.OrderStatusProcessing:
+		return v1.OrderStatusProcessing
+	case model.OrderStatusInvalid:
+		return v1.OrderStatusInvalid
+	case model.OrderStatusProcessed:
+		return v1.OrderStatusProcessed
 	}
 
 	return ""
 }
 
-func ToWithdrawDto(model *_mod.Withdraw) *_dto.WithdrawDto {
-	if model == nil {
+func ToWithdrawDto(withdraw *model.Withdraw) *v1.WithdrawDto {
+	if withdraw == nil {
 		return nil
 	}
 
-	return _dto.NewWithdrawDto(model.OrderNumber, model.WithdrawAmount, model.ProcessedAt)
+	return v1.NewWithdrawDto(withdraw.OrderNumber, withdraw.WithdrawAmount, withdraw.ProcessedAt)
 }
 
-func ToWithdrawDtoList(models []*_mod.Withdraw) []*_dto.WithdrawDto {
-	res := make([]*_dto.WithdrawDto, 0)
-	for _, model := range models {
-		res = append(res, ToWithdrawDto(model))
+func ToWithdrawDtoList(withdrawals []*model.Withdraw) []*v1.WithdrawDto {
+	res := make([]*v1.WithdrawDto, 0)
+	for _, withdraw := range withdrawals {
+		res = append(res, ToWithdrawDto(withdraw))
 	}
 
 	return res

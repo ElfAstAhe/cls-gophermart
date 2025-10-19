@@ -13,7 +13,7 @@ type zapLogger struct {
 	logger *zap.Logger
 }
 
-func NewStartupZapLogger() AppLogger {
+func NewStartupZapLogger() Logger {
 	zapLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
 
 	core := newConsoleZapCore(zapLevel)
@@ -23,7 +23,7 @@ func NewStartupZapLogger() AppLogger {
 	}
 }
 
-func NewZapLogger(level string, filePath string) (AppLogger, error) {
+func NewZapLogger(level string, filePath string) (Logger, error) {
 	zapLevel, err := zap.ParseAtomicLevel(level)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (zl *zapLogger) Close() error {
 	return zl.logger.Sync()
 }
 
-// AppLogger
+// Logger
 
 func (zl *zapLogger) Error(args ...interface{}) {
 	zl.logger.Sugar().Error(args...)
@@ -116,7 +116,7 @@ func (zl *zapLogger) Debugf(format string, args ...interface{}) {
 	zl.logger.Sugar().Debugf(format, args...)
 }
 
-func (zl *zapLogger) GetLogger(logicEntry string) AppLogger {
+func (zl *zapLogger) GetLogger(logicEntry string) Logger {
 	return &zapLogger{
 		logger: zl.logger.With(zap.String("childEntry", logicEntry)),
 	}

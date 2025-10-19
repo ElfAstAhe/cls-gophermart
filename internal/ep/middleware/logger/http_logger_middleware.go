@@ -5,14 +5,14 @@ import (
 	"strconv"
 	"time"
 
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
 )
 
 type HTTPLoggerMiddleware struct {
-	log _log.AppLogger
+	log logger.Logger
 }
 
-func NewHTTPLoggerMiddleware(logger _log.AppLogger) *HTTPLoggerMiddleware {
+func NewHTTPLoggerMiddleware(logger logger.Logger) *HTTPLoggerMiddleware {
 	return &HTTPLoggerMiddleware{
 		log: logger,
 	}

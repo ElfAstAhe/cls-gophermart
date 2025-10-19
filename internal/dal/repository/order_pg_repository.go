@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"slices"
 
-	_db "github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
-	_mod "github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
-	_err "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/config/db"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 	"github.com/google/uuid"
 )
 
@@ -25,42 +25,47 @@ const (
 )
 
 type OrderPgRepository struct {
-	db _db.DB
+	db db.DB
 }
 
-var changeUnacceptableOrderStatuses []string = []string{
-	_mod.OrderStatusInvalid,
-	_mod.OrderStatusProcessed,
-}
-var acceptableOrderStatuses []string = []string{
-	_mod.OrderStatusNew,
-	_mod.OrderStatusProcessing,
-	_mod.OrderStatusInvalid,
-	_mod.OrderStatusProcessed,
-}
-
-func NewOrderPgRepository(db _db.DB) *OrderPgRepository {
+func NewOrderPgRepository(db db.DB) *OrderPgRepository {
 	return &OrderPgRepository{
 		db: db,
 	}
 }
 
-func (o *OrderPgRepository) Find(ctx context.Context, id string) (*_mod.Order, error) {
+func (o *OrderPgRepository) listAcceptableOrderStatuses() []string {
+	return []string{
+		model.OrderStatusNew,
+		model.OrderStatusProcessing,
+		model.OrderStatusInvalid,
+		model.OrderStatusProcessed,
+	}
+}
+
+func (o *OrderPgRepository) listUnacceptableOrderStatuses() []string {
+	return []string{
+		model.OrderStatusInvalid,
+		model.OrderStatusProcessed,
+	}
+}
+
+func (o *OrderPgRepository) Find(ctx context.Context, id string) (*model.Order, error) {
 	return o.findSingle(ctx, pgFindOrderSql, id)
 }
 
-func (o *OrderPgRepository) FindByNumber(ctx context.Context, number string) (*_mod.Order, error) {
+func (o *OrderPgRepository) FindByNumber(ctx context.Context, number string) (*model.Order, error) {
 	return o.findSingle(ctx, pgFindOrderByNumberSql, number)
 }
 
-func (o *OrderPgRepository) FindByNumberAndAccount(ctx context.Context, accountId string, number string) (*_mod.Order, error) {
+func (o *OrderPgRepository) FindByNumberAndAccount(ctx context.Context, accountId string, number string) (*model.Order, error) {
 	return o.findSingle(ctx, pgFindOrderByNumberAndAccountSql, accountId, number)
 }
 
-func (o *OrderPgRepository) findSingle(ctx context.Context, query string, params ...any) (*_mod.Order, error) {
+func (o *OrderPgRepository) findSingle(ctx context.Context, query string, params ...any) (*model.Order, error) {
 	row := o.db.GetDB().QueryRowContext(ctx, query, params...)
 
-	model := &_mod.Order{}
+	model := &model.Order{}
 	err := row.Scan(&model.ID, &model.Number, &model.Status, &model.AccrualAmount, &model.UploadedAt)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -71,41 +76,41 @@ func (o *OrderPgRepository) findSingle(ctx context.Context, query string, params
 	return model, nil
 }
 
-func (o *OrderPgRepository) ListByAccount(ctx context.Context, accountId string) ([]*_mod.Order, error) {
+func (o *OrderPgRepository) ListByAccount(ctx context.Context, accountId string) ([]*model.Order, error) {
 	if accountId == "" {
-		return make([]*_mod.Order, 0), nil
+		return make([]*model.Order, 0), nil
 	}
 
 	return o.list(ctx, pgListOrdersByAccountSql, accountId)
 }
 
-func (o *OrderPgRepository) ListUnfinished(ctx context.Context, statuses ...string) ([]*_mod.Order, error) {
+func (o *OrderPgRepository) ListUnfinished(ctx context.Context, statuses ...string) ([]*model.Order, error) {
 	if len(statuses) == 0 {
-		return make([]*_mod.Order, 0), nil
+		return make([]*model.Order, 0), nil
 	}
 
 	return o.list(ctx, pgListOrdersUnfinishedSql, statuses)
 }
 
-func (o *OrderPgRepository) list(ctx context.Context, query string, params ...any) ([]*_mod.Order, error) {
-	res := make([]*_mod.Order, 0)
+func (o *OrderPgRepository) list(ctx context.Context, query string, params ...any) ([]*model.Order, error) {
+	res := make([]*model.Order, 0)
 	rows, err := o.db.GetDB().QueryContext(ctx, query, params...)
 	if err != nil {
 		return nil, err
 	}
-	defer _utl.CloseOnly(rows)
+	defer utils.CloseOnly(rows)
 
 	for rows.Next() {
-		model := &_mod.Order{}
+		order := &model.Order{}
 
-		err := rows.Scan(&model.ID, &model.Number, &model.Status, &model.AccrualAmount, &model.UploadedAt)
+		err := rows.Scan(&order.ID, &order.Number, &order.Status, &order.AccrualAmount, &order.UploadedAt)
 		if err != nil && errors.Is(err, sql.ErrNoRows) {
 			return res, nil
 		} else if err != nil {
 			return nil, err
 		}
 
-		res = append(res, model)
+		res = append(res, order)
 	}
 	if rows.Err() != nil {
 		return nil, rows.Err()
@@ -114,7 +119,7 @@ func (o *OrderPgRepository) list(ctx context.Context, query string, params ...an
 	return res, nil
 }
 
-func (o *OrderPgRepository) Create(ctx context.Context, accountId string, order *_mod.Order) (*_mod.Order, error) {
+func (o *OrderPgRepository) Create(ctx context.Context, accountId string, order *model.Order) (*model.Order, error) {
 	if err := o.validateInstance(order); err != nil {
 		return nil, err
 	}
@@ -133,7 +138,7 @@ func (o *OrderPgRepository) Create(ctx context.Context, accountId string, order 
 	return order, nil
 }
 
-func (o *OrderPgRepository) Change(ctx context.Context, order *_mod.Order) (*_mod.Order, error) {
+func (o *OrderPgRepository) Change(ctx context.Context, order *model.Order) (*model.Order, error) {
 	if err := o.validateInstance(order); err != nil {
 		return nil, err
 	}
@@ -149,39 +154,39 @@ func (o *OrderPgRepository) Change(ctx context.Context, order *_mod.Order) (*_mo
 	return order, nil
 }
 
-func (o *OrderPgRepository) validateInstance(order *_mod.Order) error {
+func (o *OrderPgRepository) validateInstance(order *model.Order) error {
 	// nil instance
 	if order == nil {
-		return _err.NewModelValidationError("order", "order is null", nil)
+		return errs.NewModelValidationError("order", "order is null", nil)
 	}
 
 	// order number (luna algorithm)
-	if err := _utl.ValidateOrderNumberByLuhn(order.Number); err != nil {
-		return _err.NewModelValidationError("order", "order number invalid", err)
+	if err := utils.ValidateOrderNumberByLuhn(order.Number); err != nil {
+		return errs.NewModelValidationError("order", "order number invalid", err)
 	}
 
 	// order status
 	if err := o.validateInstanceStatus(order); err != nil {
-		return _err.NewModelValidationError("order", "order status invalid", err)
+		return errs.NewModelValidationError("order", "order status invalid", err)
 	}
 
 	// amount
 	if !(order.AccrualAmount >= 0.0) {
-		return _err.NewModelValidationError("order", "order accrual_amount must be greater than zero", nil)
+		return errs.NewModelValidationError("order", "order accrual_amount must be greater than zero", nil)
 	}
 
 	return nil
 }
 
-func (o *OrderPgRepository) validateInstanceStatus(order *_mod.Order) error {
-	if !slices.Contains(acceptableOrderStatuses, order.Status) {
+func (o *OrderPgRepository) validateInstanceStatus(order *model.Order) error {
+	if !slices.Contains(o.listAcceptableOrderStatuses(), order.Status) {
 		return fmt.Errorf("order status [%v] invalid", order.Status)
 	}
 
 	return nil
 }
 
-func (o *OrderPgRepository) validateCreateBL(ctx context.Context, accountId string, order *_mod.Order) error {
+func (o *OrderPgRepository) validateCreateBL(ctx context.Context, accountId string, order *model.Order) error {
 	modelCurrent, err := o.FindByNumberAndAccount(ctx, order.Number, accountId)
 	if err != nil {
 		return err
@@ -191,31 +196,31 @@ func (o *OrderPgRepository) validateCreateBL(ctx context.Context, accountId stri
 		return err
 	}
 	if modelCurrent != nil {
-		return _err.NewBllOrderAlreadyExistsCurrentError(order.Number)
+		return errs.NewBllOrderAlreadyExistsCurrentError(order.Number)
 	}
 	if modelAnother != nil {
-		return _err.NewBllOrderAlreadyExistsAnotherError(order.Number)
+		return errs.NewBllOrderAlreadyExistsAnotherError(order.Number)
 	}
 
 	return nil
 }
 
-func (o *OrderPgRepository) validateChangeBL(ctx context.Context, order *_mod.Order) error {
+func (o *OrderPgRepository) validateChangeBL(ctx context.Context, order *model.Order) error {
 	// model existence
-	model, err := o.Find(ctx, order.ID)
+	founded, err := o.Find(ctx, order.ID)
 	if err != nil {
 		return err
 	}
-	if model == nil {
-		return _err.NewModelNotExistsError("order", order.ID)
+	if founded == nil {
+		return errs.NewModelNotExistsError("order", order.ID)
 	}
 	// acceptable status
-	if slices.Contains(changeUnacceptableOrderStatuses, order.Status) {
-		return _err.NewModelValidationError("order", "order status is invalid", nil)
+	if slices.Contains(o.listUnacceptableOrderStatuses(), order.Status) {
+		return errs.NewModelValidationError("order", "order status is invalid", nil)
 	}
 	// amount
 	if !(order.AccrualAmount >= 0.0) {
-		return _err.NewModelValidationError("order", "order accrual_amount must be equal or greater than zero", nil)
+		return errs.NewModelValidationError("order", "order accrual_amount must be equal or greater than zero", nil)
 	}
 
 	return nil

@@ -11,7 +11,7 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	"github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty"
 	ldto "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
-	errors "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
 type OrdersPollingServiceImpl struct {
@@ -124,7 +124,7 @@ func (ops *OrdersPollingServiceImpl) processEvent(stopCtx context.Context) {
 
 func (ops *OrdersPollingServiceImpl) createWorkerPool(stopCtx context.Context, workerCount int) error {
 	if workerCount <= 0 {
-		return errors.NewAppInvalidArgumentError("workerCount", workerCount)
+		return errs.NewAppInvalidArgumentError("workerCount", workerCount)
 	}
 
 	for index := 0; index < workerCount; index++ {
@@ -197,7 +197,7 @@ func (ops *OrdersPollingServiceImpl) processSingleOrder(orderID string) error {
 
 func (ops *OrdersPollingServiceImpl) toModel(dto *ldto.LSOrderDto) (*model.Order, error) {
 	if dto == nil {
-		return nil, errors.NewAppInvalidArgumentError("order dto", nil)
+		return nil, errs.NewAppInvalidArgumentError("order dto", nil)
 	}
 	status, err := ops.toModelStatus(dto.Status)
 	if err != nil {
@@ -219,7 +219,7 @@ func (ops *OrdersPollingServiceImpl) toModelStatus(dtoStatus string) (string, er
 		return model.OrderStatusProcessed, nil
 	}
 
-	return "", errors.NewAppInvalidArgumentError("dtoStatus", dtoStatus)
+	return "", errs.NewAppInvalidArgumentError("dtoStatus", dtoStatus)
 }
 
 func (ops *OrdersPollingServiceImpl) Add(ID string) {
@@ -227,7 +227,17 @@ func (ops *OrdersPollingServiceImpl) Add(ID string) {
 		return
 	}
 
-	go func() {
-		ops.queue <- ID
-	}()
+	ctx, cancelFunc := context.WithTimeout(ops.stopCtx, 30*time.Second)
+
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		case ops.queue <- ID:
+			{
+				cancelFunc()
+				return
+			}
+		}
+	}(ctx)
 }

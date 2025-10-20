@@ -2,9 +2,11 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/ElfAstAhe/cls-gophermart/internal/app/config"
@@ -15,11 +17,13 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/internal/dal/repository"
 	"github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
 	"github.com/ElfAstAhe/cls-gophermart/internal/ep/handler"
-	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
 	"github.com/ElfAstAhe/cls-gophermart/migrations"
 )
 
 type App struct {
+	ctx              context.Context
+	cancelFunc       context.CancelFunc
+	WG               sync.WaitGroup
 	DB               db.DB
 	Log              logger.Logger
 	Conf             *config.Config
@@ -32,12 +36,16 @@ type App struct {
 	orderPollService service.OrdersPollingService
 	usersFacade      facade.UsersFacade
 	authFacade       facade.AuthFacade
-	Router           handler.AppRouter
+	router           handler.AppRouter
+	httpServer       *http.Server
 }
 
 func NewApp() *App {
+	ctx, cancel := context.WithCancel(context.Background())
 	return &App{
-		Log: logger.NewStartupZapLogger(),
+		ctx:        ctx,
+		cancelFunc: cancel,
+		Log:        logger.NewStartupZapLogger(),
 	}
 }
 
@@ -75,8 +83,13 @@ func (app *App) Init() error {
 		return err
 	}
 
-	logger.Info("initializing http server")
+	logger.Info("initializing http server handlers")
 	if err := app.initRouter(); err != nil {
+		return err
+	}
+
+	logger.Info("initializing http server")
+	if err := app.initHttpServer(); err != nil {
 		return err
 	}
 
@@ -84,16 +97,17 @@ func (app *App) Init() error {
 }
 
 func (app *App) Run() error {
-	logger := app.Log.GetLogger("app run")
+	log := app.Log.GetLogger("app run")
 	//    defer _utl.CloseOnly(logger.(io.Closer))
-	logger.Info("Starting graceful shutdown go routine...")
+	log.Info("Starting graceful shutdown go routine...")
+	app.WG.Add(1)
 	go app.gracefulShutdown()
 
-	logger.Info("Starting server...")
-	if err := http.ListenAndServe(app.Conf.HTTP.GetListenerAddr(), app.Router.GetRouter()); err != nil {
-		logger.Errorf("Error starting server with error [%v]", err)
+	log.Info("Starting server...")
+	if err := app.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Errorf("Error starting server with error [%v]", err)
 
-		os.Exit(1)
+		return err
 	}
 
 	return nil
@@ -192,7 +206,16 @@ func (app *App) initStartupServices() error {
 }
 
 func (app *App) initRouter() error {
-	app.Router = handler.NewChiRouter(app.Conf, app.usersFacade, app.authFacade, app.Log)
+	app.router = handler.NewChiRouter(app.Conf, app.usersFacade, app.authFacade, app.Log)
+
+	return nil
+}
+
+func (app *App) initHttpServer() error {
+	app.httpServer = &http.Server{
+		Addr:    app.Conf.HTTP.GetListenerAddr(),
+		Handler: app.router.GetRouter(),
+	}
 
 	return nil
 }
@@ -203,11 +226,22 @@ func (app *App) gracefulShutdown() {
 	// register channel signals
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	// awaiting signal
-	<-sig
+	select {
+	case <-sig:
+		{
+			app.cancelFunc()
+			break
+		}
+	case <-app.ctx.Done():
+		{
+			signal.Stop(sig)
+			break
+		}
+	}
 
-	utils.CloseOnly(app)
+	if err := app.httpServer.Shutdown(context.Background()); err != nil {
+		app.Log.Errorf("error graceful shutdown http server with error [%v]", err)
+	}
 
-	app.Log.Info("Graceful shutdown server done")
-
-	os.Exit(0)
+	app.WG.Done()
 }

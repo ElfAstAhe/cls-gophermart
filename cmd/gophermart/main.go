@@ -1,16 +1,18 @@
 package main
 
 import (
+	"errors"
+	"net/http"
 	"os"
 
-	_bs "github.com/ElfAstAhe/cls-gophermart/internal/app/bootstrap"
-	_utl "github.com/ElfAstAhe/cls-gophermart/internal/utils"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/bootstrap"
+	"github.com/ElfAstAhe/cls-gophermart/internal/utils"
 )
 
 func main() {
 	// app instance
-	app := _bs.NewApp()
-	defer _utl.CloseOnly(app)
+	app := bootstrap.NewApp()
+	defer utils.CloseOnly(app)
 	logger := app.Log.GetLogger("main")
 	//	defer _utl.CloseOnly(logger.(io.Closer))
 
@@ -24,12 +26,11 @@ func main() {
 
 	// app run
 	logger.Info("app running")
-	if err := app.Run(); err != nil {
+	if err := app.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Errorf("app run error [%v]", err)
-
-		os.Exit(1)
 	}
 
+	app.WG.Wait()
+
 	logger.Info("app shutdown")
-	os.Exit(0)
 }

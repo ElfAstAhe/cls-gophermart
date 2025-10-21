@@ -14,7 +14,7 @@ import (
 
 const (
 	pgFindUserSql       string = `select id, username, password, disabled from users where id = $1`
-	pgFindUserByNameSql string = `select id, username, password, disabled from users where name = $1`
+	pgFindUserByNameSql string = `select id, username, password, disabled from users where username = $1`
 	pgCreateUserSql     string = `insert into users(id, username, password, disabled) values( $1, $2, $3, $4)`
 	pgChangeUserSql     string = `update users set password = $2, disabled = $3 where id = $1`
 	pgSoftDeleteUserSql string = `update users set disabled = true where id = $1`

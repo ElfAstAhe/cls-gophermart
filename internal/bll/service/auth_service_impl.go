@@ -6,6 +6,7 @@ import (
 
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
+	"github.com/ElfAstAhe/cls-gophermart/internal/bll/service/auth"
 	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
@@ -36,8 +37,10 @@ func (as *AuthServiceImpl) Login(ctx context.Context, username string, password 
 		return "", err
 	}
 
-	// ToDo: generate jwt
-	var jwtString string = "test.jwt.token"
+	jwtString, err := auth.NewJWTString(false, user.ID, user.Username)
+	if err != nil {
+		return "", err
+	}
 
 	return jwtString, nil
 }

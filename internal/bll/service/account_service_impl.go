@@ -70,7 +70,7 @@ func (a *AccountServiceImpl) Withdraw(ctx context.Context, userID string, orderN
 
 func (a *AccountServiceImpl) validateWithdraw(userID string, orderNumber string, withdrawAmount float64) error {
 	if strings.TrimSpace(userID) == "" {
-		return errors.NewAuthUnauthorizedError("userID is null")
+		return errors.NewAuthUnauthorizedError("userID is null", nil)
 	}
 	if err := utils.ValidateOrderNumberByLuhn(orderNumber); err != nil {
 		return err
@@ -123,7 +123,7 @@ func (a *AccountServiceImpl) ListAllOrdersByUser(ctx context.Context, userID str
 
 func (a *AccountServiceImpl) validateAndGetAccount(ctx context.Context, userID string) (string, error) {
 	if strings.TrimSpace(userID) == "" {
-		return "", errors.NewAuthUnauthorizedError("userID is null")
+		return "", errors.NewAuthUnauthorizedError("userID is null", nil)
 	}
 	account, err := a.accountRepo.FindByUser(ctx, userID)
 	if err != nil {

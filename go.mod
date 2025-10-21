@@ -6,6 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.2.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/go-chi/chi/v5 v5.2.3
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/phedde/luhn-algorithm v0.0.0-20241101133237-e52d92f74c0d

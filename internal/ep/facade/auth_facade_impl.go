@@ -10,12 +10,14 @@ import (
 
 type AuthFacadeImpl struct {
 	authService service.AuthService
+	userService service.UserService
 	log         logger.Logger
 }
 
-func NewAuthFacadeImpl(authService service.AuthService, logger logger.Logger) *AuthFacadeImpl {
+func NewAuthFacadeImpl(authService service.AuthService, userService service.UserService, logger logger.Logger) *AuthFacadeImpl {
 	return &AuthFacadeImpl{
 		authService: authService,
+		userService: userService,
 		log:         logger.GetLogger("AuthFacadeImpl"),
 	}
 }

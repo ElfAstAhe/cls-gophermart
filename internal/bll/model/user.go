@@ -9,10 +9,10 @@ type User struct {
 	Account *Account
 }
 
-func NewUser(username string, password string) *User {
+func NewUser(username string, password string, disabled bool) *User {
 	return &User{
 		Username: username,
 		Password: password,
-		Disabled: false,
+		Disabled: disabled,
 	}
 }

@@ -33,6 +33,7 @@ type App struct {
 	userRepo         irepo.UserRepository
 	accountService   service.AccountService
 	authService      service.AuthService
+	userService      service.UserService
 	orderPollService service.OrdersPollingService
 	usersFacade      facade.UsersFacade
 	authFacade       facade.AuthFacade
@@ -188,10 +189,11 @@ func (app *App) initDependencies() error {
 	app.orderPollService = service.NewOrdersPollingService(context.Background(), app.Conf.AccrualBaseURI, app.orderRepo, app.Log)
 	app.accountService = service.NewAccountServiceImpl(app.orderPollService, app.accountRepo, app.withdrawRepo, app.orderRepo)
 	app.authService = service.NewAuthService(app.userRepo)
+	app.userService = service.NewUserServiceImpl(app.userRepo, app.accountRepo, app.Log)
 
 	// facade
 	app.usersFacade = facade.NewUsersFacadeImpl(app.accountService, app.Log)
-	app.authFacade = facade.NewAuthFacadeImpl(app.authService, app.Log)
+	app.authFacade = facade.NewAuthFacadeImpl(app.authService, app.userService, app.Log)
 
 	return nil
 }

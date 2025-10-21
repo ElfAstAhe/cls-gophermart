@@ -6,7 +6,7 @@ import (
 
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
-	errors "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
 type AuthServiceImpl struct {
@@ -29,7 +29,7 @@ func (as *AuthServiceImpl) Login(ctx context.Context, username string, password 
 		return "", err
 	}
 	if user == nil {
-		return "", errors.NewModelNotExistsError("user", username)
+		return "", errs.NewModelNotExistsError("user", username)
 	}
 
 	if err := as.checkPassword(user, password); err != nil {
@@ -42,34 +42,12 @@ func (as *AuthServiceImpl) Login(ctx context.Context, username string, password 
 	return jwtString, nil
 }
 
-func (as *AuthServiceImpl) Register(ctx context.Context, username string, password string) (string, error) {
-	if err := as.validateArgs(username, password); err != nil {
-		return "", err
-	}
-
-	user, err := as.userRepo.FindByName(ctx, username)
-	if err != nil {
-		return "", err
-	}
-	if user != nil {
-		return "", errors.NewModelAlreadyExistsError("user", username)
-	}
-
-	user = model.NewUser(username, password)
-	user, err = as.userRepo.Create(ctx, user)
-	if err != nil {
-		return "", err
-	}
-
-	return as.Login(ctx, username, password)
-}
-
 func (as *AuthServiceImpl) validateArgs(username, password string) error {
 	if strings.TrimSpace(username) == "" {
-		return errors.NewAppInvalidArgumentError("username", username)
+		return errs.NewAppInvalidArgumentError("username", username)
 	}
 	if strings.TrimSpace(password) == "" {
-		return errors.NewAppInvalidArgumentError("password", password)
+		return errs.NewAppInvalidArgumentError("password", password)
 	}
 
 	return nil
@@ -77,7 +55,7 @@ func (as *AuthServiceImpl) validateArgs(username, password string) error {
 
 func (as *AuthServiceImpl) checkPassword(user *model.User, password string) error {
 	if password != user.Password {
-		return errors.NewAuthPasswordIncorrectError(user.Username)
+		return errs.NewAuthPasswordIncorrectError(user.Username)
 	}
 
 	return nil

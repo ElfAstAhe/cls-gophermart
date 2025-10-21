@@ -8,6 +8,7 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
 	"github.com/ElfAstAhe/cls-gophermart/internal/ep/facade"
 	"github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/compress"
+	"github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/jwt"
 	mlog "github.com/ElfAstAhe/cls-gophermart/internal/ep/middleware/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,6 +42,7 @@ func (cr *AppChiRouter) GetRouter() http.Handler {
 }
 
 func (cr *AppChiRouter) setupMiddleware(logger logger.Logger) {
+	cr.router.Use(jwt.NewHTTPJWTMiddleware(logger).UserInfoRetrieve)
 	cr.router.Use(middleware.RequestID)
 	cr.router.Use(middleware.RealIP)
 	cr.router.Use(compress.CustomCompress(compress.DefaultCompressionLevel, compress.ContentTypeApplicationJSON, compress.ContentTypeTextHTML))

@@ -61,7 +61,7 @@ func newAppClaims(admin bool, userID string, user string, roles ...string) *AppC
 }
 
 func buildUniqueTokenID() string {
-	const template = "shortener-token-%v"
+	const template = "gophermart-token-%v"
 	randID, err := uuid.NewRandom()
 	if err != nil {
 		return fmt.Sprintf(template, time.Now().Nanosecond())
@@ -88,7 +88,7 @@ func retrieveJWT(r *http.Request) (*jwt.Token, error) {
 		return []byte(secretKey), nil
 	})
 	if err != nil {
-		return nil, errs.NewAuthInfoAbsentError("error parsing token", err)
+		return nil, errs.NewAuthUnauthorizedError("error parsing token", err)
 	}
 
 	return token, nil
@@ -101,7 +101,7 @@ func UserInfoFromRequestJWT(r *http.Request) (*UserInfo, error) {
 	}
 
 	if !jwtToken.Valid {
-		return nil, errs.NewAuthInfoAbsentError("JWT is invalid", nil)
+		return nil, errs.NewAuthUnauthorizedError("JWT is invalid", nil)
 	}
 
 	res, err := UserInfoFromJWT(jwtToken)
@@ -115,7 +115,7 @@ func UserInfoFromRequestJWT(r *http.Request) (*UserInfo, error) {
 func UserInfoFromJWT(jwt *jwt.Token) (*UserInfo, error) {
 	claims, ok := jwt.Claims.(*AppClaims)
 	if !ok {
-		return nil, errs.NewAuthInfoAbsentError("error transform raw JWT claims into AppClaims struct", nil)
+		return nil, errs.NewAuthUnauthorizedError("error transform raw JWT claims into AppClaims struct", nil)
 	}
 
 	return NewUserInfo(claims.Admin, claims.UserID, claims.Subject, claims.Roles), nil

@@ -150,7 +150,7 @@ func (ops *OrdersPollingServiceImpl) worker(stopCtx context.Context, index int, 
 		case id := <-ops.queue:
 			ops.log.Infof("processing order id=[%s] worker index [%v] start", id, index)
 			if err := ops.processSingleOrder(id); err != nil {
-				ops.log.Errorf("error processing order id=[%s] worker index [%v] error: %v", id, index, err)
+				ops.log.Errorf("error processing order id=[%s] worker index [%v] error: [%v]", id, index, err)
 			}
 
 			ops.log.Infof("processing order id=[%s] worker index [%v] finished, sleep [%v]", id, index, sleepTime)
@@ -162,34 +162,62 @@ func (ops *OrdersPollingServiceImpl) worker(stopCtx context.Context, index int, 
 }
 
 func (ops *OrdersPollingServiceImpl) processSingleOrder(orderID string) error {
-	dto, err := ops.lsClient.GetOrder(orderID)
+	order, err := ops.getOrder(orderID)
+	if err != nil {
+		return err
+	}
+
+	remoteOrder, err := ops.getRemoteOrder(order.Number)
+	if err != nil {
+		return err
+	}
+
+	if err := ops.validateAndStore(order, remoteOrder); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ops *OrdersPollingServiceImpl) getOrder(orderID string) (*model.Order, error) {
+	order, err := ops.orderRepo.Find(ops.stopCtx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if order == nil {
+		return nil, errs.NewModelNotExistsError("order", orderID)
+	}
+
+	return order, nil
+}
+
+func (ops *OrdersPollingServiceImpl) getRemoteOrder(number string) (*model.Order, error) {
+	dto, err := ops.lsClient.GetOrder(number)
 	// check client response
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if dto == nil {
-		ops.log.Warnf("order id [%s] not exists in loyalty system", orderID)
-		return nil
+		return nil, errs.NewModelNotExistsError("lsOrder", number)
 	}
-	newModel, err := ops.toModel(dto)
+	res, err := ops.toModel(dto)
 	if err != nil {
-		return err
-	}
-	newModel.ID = orderID
-
-	oldModel, err := ops.orderRepo.Find(ops.stopCtx, orderID)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return res, nil
+}
+
+func (ops *OrdersPollingServiceImpl) validateAndStore(order *model.Order, remoteOrder *model.Order) error {
 	// business logic
-	if oldModel.Status != newModel.Status {
-		if _, err := ops.orderRepo.Change(ops.stopCtx, newModel); err != nil {
+	if order.Status != remoteOrder.Status {
+		remoteOrder.ID = order.ID
+		if _, err := ops.orderRepo.Change(ops.stopCtx, remoteOrder); err != nil {
 			return err
 		}
-		ops.log.Infof("order id=[%s] status changed to [%s] from [%s], changes stored", orderID, newModel.Status, oldModel.Status)
+		ops.log.Infof("order id=[%s] status changed to [%s] from [%s], changes stored", order.ID, remoteOrder.Status, order.Status)
 	} else {
-		ops.log.Infof("order id=[%s] no changes", orderID)
+		ops.log.Infof("order id=[%s] no changes", order.ID)
 	}
 
 	return nil

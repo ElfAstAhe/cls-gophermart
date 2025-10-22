@@ -1,7 +1,5 @@
 // Package config
 /*
-  Iteration 5
-
   Configuration params priority :
 
   1 - ENV vars
@@ -14,14 +12,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/caarlos0/env/v6"
 	"go.uber.org/zap"
 )
 
 type Config struct {
-	onceRun        sync.Once
 	AppName        string      `json:"app_name,omitempty"`
 	ProjectStage   string      `json:"project_stage,omitempty" env:"PROJECT_STAGE" envDefault:"DEV"`
 	LogLevel       string      `json:"log_level,omitempty" env:"LOG_LEVEL" envDefault:"INFO"`
@@ -58,7 +54,7 @@ const (
 func NewConfig() *Config {
 	var cfg = defaultConfig()
 
-	cfg.onceRun.Do(cfg.initFlags)
+	cfg.initFlags()
 
 	return cfg
 }

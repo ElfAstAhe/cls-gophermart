@@ -11,6 +11,3 @@ const DefaultHTTPPort int = 8080
 
 const DefaultDBKind string = DBKindPostgres
 const DefaultDBDsn string = ""
-
-//const DefaultStoragePath = "./shortener.txt"
-//const DefaultStorageUserPath = "./shortener_user.txt"

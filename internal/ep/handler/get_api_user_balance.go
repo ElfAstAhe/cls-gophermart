@@ -8,9 +8,9 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) getApiUserBalance(rw http.ResponseWriter, r *http.Request) {
-	cr.log.Debug("getApiUserBalance start")
-	defer cr.log.Debug("getApiUserBalance finish")
+func (cr *AppChiRouter) getAPIUserBalance(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("getAPIUserBalance start")
+	defer cr.log.Debug("getAPIUserBalance finish")
 
 	// userID in request context
 	dto, err := cr.usersFacade.GetBalance(r.Context())

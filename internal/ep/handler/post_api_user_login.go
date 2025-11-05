@@ -7,7 +7,7 @@ import (
 	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) postApiUserLogin(rw http.ResponseWriter, r *http.Request) {
+func (cr *AppChiRouter) postAPIUserLogin(rw http.ResponseWriter, r *http.Request) {
 	jwtString, err := cr.authFacade.LoginUser(r.Context(), r.Body)
 	if err != nil {
 		// 400

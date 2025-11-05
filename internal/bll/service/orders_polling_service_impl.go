@@ -10,7 +10,6 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/model"
 	"github.com/ElfAstAhe/cls-gophermart/internal/bll/repository"
 	"github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty"
-	ls "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty"
 	ldto "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
 	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
@@ -39,7 +38,7 @@ func NewOrdersPollingService(ctx context.Context, baseURI string, orderRepo repo
 		baseURI:        baseURI,
 		orderRepo:      orderRepo,
 		log:            logger.GetLogger("OrdersPollingService"),
-		lsClient:       ls.NewLSSimpleClient(baseURI, 5*time.Second, logger),
+		lsClient:       loyalty.NewLSSimpleClient(baseURI, 5*time.Second, logger),
 	}
 }
 

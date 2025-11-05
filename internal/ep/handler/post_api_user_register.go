@@ -7,7 +7,10 @@ import (
 	errs "github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) postApiUserRegister(rw http.ResponseWriter, r *http.Request) {
+func (cr *AppChiRouter) postAPIUserRegister(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("postAPIUserRegister start")
+	defer cr.log.Debug("postAPIUserRegister finish")
+
 	jwtString, err := cr.authFacade.RegisterUser(r.Context(), r.Body)
 	if err != nil {
 		// 400

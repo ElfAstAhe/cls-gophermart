@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pgCreateTableWithdrawalsSql string = `create table if not exists withdrawals (
+	pgCreateTableWithdrawalsSQL string = `create table if not exists withdrawals (
     id varchar(50) not null,
     account_id varchar(50) not null,
     order_number varchar(100) not null,
@@ -18,9 +18,9 @@ const (
     constraint withdrawals_fk foreign key (account_id) references accounts(id) on delete cascade,
     constraint withdrawals_ch_amount check (withdraw_amount >= 0.0)
 );`
-	pgDropTableWithdrawalsSql   string = `drop table if exists withdrawals cascade;`
-	pgCreateIndexWithdrawalsSql string = `create index if not exists withdrawals_idx on withdrawals(account_id asc, processed_at desc);`
-	pgDropIndexWithdrawalsSql   string = `drop index if exists withdrawals_idx cascade;`
+	pgDropTableWithdrawalsSQL   string = `drop table if exists withdrawals cascade;`
+	pgCreateIndexWithdrawalsSQL string = `create index if not exists withdrawals_idx on withdrawals(account_id asc, processed_at desc);`
+	pgDropIndexWithdrawalsSQL   string = `drop index if exists withdrawals_idx cascade;`
 )
 
 func init() {
@@ -44,7 +44,7 @@ func down00004(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(pgCreateTableWithdrawalsSql)
+	_, err := db.Exec(pgCreateTableWithdrawalsSQL)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func createTableWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(pgCreateIndexWithdrawalsSql)
+	_, err := db.Exec(pgCreateIndexWithdrawalsSQL)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func createIndexWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(pgDropTableWithdrawalsSql)
+	_, err := db.Exec(pgDropTableWithdrawalsSQL)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func dropTableWithdrawals(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexWithdrawals(ctx context.Context, db *sql.DB) error {
-	_, err := db.Exec(pgDropIndexWithdrawalsSql)
+	_, err := db.Exec(pgDropIndexWithdrawalsSQL)
 	if err != nil {
 		return err
 	}

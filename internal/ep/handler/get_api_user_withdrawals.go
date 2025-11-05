@@ -5,12 +5,12 @@ import (
 	"errors"
 	"net/http"
 
-	error "github.com/ElfAstAhe/cls-gophermart/pkg/error"
+	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) getApiUserWithdrawals(rw http.ResponseWriter, r *http.Request) {
-	cr.log.Debug("getApiUserWithdrawals start")
-	defer cr.log.Debug("getApiUserWithdrawals finish")
+func (cr *AppChiRouter) getAPIUserWithdrawals(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("getAPIUserWithdrawals start")
+	defer cr.log.Debug("getAPIUserWithdrawals finish")
 
 	dtoList, err := cr.usersFacade.ListWithdrawals(r.Context())
 	if err != nil {

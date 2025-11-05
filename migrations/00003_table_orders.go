@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pgCreateTableOrdersSql string = `create table if not exists orders (
+	pgCreateTableOrdersSQL string = `create table if not exists orders (
     id varchar(50) not null,
     account_id varchar(50) not null,
     doc_number varchar(100) not null,
@@ -20,11 +20,11 @@ const (
     constraint orders_fk_account foreign key (account_id) references accounts(id) on delete cascade,
     constraint orders_ch_status check (status in ('NEW', 'INVALID', 'PROCESSING', 'PROCESSED'))
 );`
-	pgDropTableOrdersSql          string = `drop table if exists orders cascade;`
-	pgCreateIndexOrdersAccountSql string = `create index if not exists orders_idx_account on orders(account_id asc, uploaded_at desc);`
-	pgDropIndexOrdersAccountSql   string = `drop index if exists orders_idx_account cascade;`
-	pgCreateIndexOrdersBalanceSql string = `create index if not exists orders_idx_balance on orders(account_id, status) where status = 'PROCESSED';`
-	pgDropIndexOrdersBalanceSql   string = `drop index if exists orders_idx_balance cascade;`
+	pgDropTableOrdersSQL          string = `drop table if exists orders cascade;`
+	pgCreateIndexOrdersAccountSQL string = `create index if not exists orders_idx_account on orders(account_id asc, uploaded_at desc);`
+	pgDropIndexOrdersAccountSQL   string = `drop index if exists orders_idx_account cascade;`
+	pgCreateIndexOrdersBalanceSQL string = `create index if not exists orders_idx_balance on orders(account_id, status) where status = 'PROCESSED';`
+	pgDropIndexOrdersBalanceSQL   string = `drop index if exists orders_idx_balance cascade;`
 )
 
 func init() {
@@ -54,7 +54,7 @@ func down00003(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableOrders(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateTableOrdersSql)
+	_, err := db.ExecContext(ctx, pgCreateTableOrdersSQL)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func createTableOrders(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexOrdersAccount(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateIndexOrdersAccountSql)
+	_, err := db.ExecContext(ctx, pgCreateIndexOrdersAccountSQL)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func createIndexOrdersAccount(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexOrdersBalance(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateIndexOrdersBalanceSql)
+	_, err := db.ExecContext(ctx, pgCreateIndexOrdersBalanceSQL)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func createIndexOrdersBalance(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableOrders(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropTableOrdersSql)
+	_, err := db.ExecContext(ctx, pgDropTableOrdersSQL)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func dropTableOrders(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexOrdersAccount(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropIndexOrdersAccountSql)
+	_, err := db.ExecContext(ctx, pgDropIndexOrdersAccountSQL)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func dropIndexOrdersAccount(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexOrdersBalance(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropIndexOrdersBalanceSql)
+	_, err := db.ExecContext(ctx, pgDropIndexOrdersBalanceSQL)
 	if err != nil {
 		return err
 	}

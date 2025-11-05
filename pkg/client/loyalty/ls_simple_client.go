@@ -33,13 +33,13 @@ func NewLSSimpleClient(baseURL string, timeOut time.Duration, logger logger.Logg
 }
 
 func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string) (*dto.LSOrderDto, error) {
-	getOrderUrl, err := url.Parse(lc.baseURL)
+	getOrderURL, err := url.Parse(lc.baseURL)
 	if err != nil {
 		return nil, err
 	}
-	getOrderUrl = getOrderUrl.JoinPath(orderNumber)
+	getOrderURL = getOrderURL.JoinPath(orderNumber)
 
-	req, err := http.NewRequest(http.MethodGet, getOrderUrl.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, getOrderURL.String(), nil)
 	if err != nil {
 		return nil, NewLSClientError(fmt.Sprintf("error creating request to get order [%s]", orderNumber), -1, err)
 	}

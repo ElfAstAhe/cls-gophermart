@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pgCreateViewOrdersBalanceSql string = `create or replace view v_accounts_balance as
+	pgCreateViewOrdersBalanceSQL string = `create or replace view v_accounts_balance as
 select
     a.id as account_id,
     coalesce(ao.accruals_amount, 0.0) - coalesce(aw.withdrawals_amount, 0.0) as balance,
@@ -41,7 +41,7 @@ from
         on
             aw.account_id = a.id
 ;`
-	pgDropViewOrdersBalanceSql string = `drop view if exists v_orders_balance;`
+	pgDropViewOrdersBalanceSQL string = `drop view if exists v_orders_balance;`
 )
 
 func init() {
@@ -57,7 +57,7 @@ func down00005(ctx context.Context, db *sql.DB) error {
 }
 
 func createViewOrdersBalance(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateViewOrdersBalanceSql)
+	_, err := db.ExecContext(ctx, pgCreateViewOrdersBalanceSQL)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func createViewOrdersBalance(ctx context.Context, db *sql.DB) error {
 }
 
 func dropViewOrdersBalance(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropViewOrdersBalanceSql)
+	_, err := db.ExecContext(ctx, pgDropViewOrdersBalanceSQL)
 	if err != nil {
 		return err
 	}

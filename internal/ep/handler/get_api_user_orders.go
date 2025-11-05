@@ -8,9 +8,9 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) getApiUserOrders(rw http.ResponseWriter, r *http.Request) {
-	cr.log.Debug("getApiUserOrders start")
-	defer cr.log.Debug("getApiUserOrders finish")
+func (cr *AppChiRouter) getAPIUserOrders(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("getAPIUserOrders start")
+	defer cr.log.Debug("getAPIUserOrders finish")
 
 	dtoList, err := cr.usersFacade.ListOrders(r.Context())
 	if err != nil {

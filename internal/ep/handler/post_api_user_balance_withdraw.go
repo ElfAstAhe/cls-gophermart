@@ -8,9 +8,9 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) postApiUserBalanceWithdraw(rw http.ResponseWriter, r *http.Request) {
-	cr.log.Debug("postApiUserBalanceWithdraw start")
-	defer cr.log.Debug("postApiUserBalanceWithdraw finish")
+func (cr *AppChiRouter) postAPIUserBalanceWithdraw(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("postAPIUserBalanceWithdraw start")
+	defer cr.log.Debug("postAPIUserBalanceWithdraw finish")
 
 	defer utils.CloseOnly(r.Body)
 

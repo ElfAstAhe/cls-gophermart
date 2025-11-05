@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pgCreateTableUsersSql string = `create table if not exists users(
+	pgCreateTableUsersSQL string = `create table if not exists users(
     id varchar(50) not null,
     username varchar(100) not null,
     password varchar(1024) not null,
@@ -16,9 +16,9 @@ const (
     constraint users_pk primary key (id),
     constraint user_uk_username unique(username)
 );`
-	pgDropTableUsersSql   string = `drop table if exists users cascade;`
-	pgCreateIndexUsersSql string = `create index if not exists users_idx on users(disabled asc, username asc);`
-	pgDropIndexUsersSql   string = `drop index if exists users_idx cascade;`
+	pgDropTableUsersSQL   string = `drop table if exists users cascade;`
+	pgCreateIndexUsersSQL string = `create index if not exists users_idx on users(disabled asc, username asc);`
+	pgDropIndexUsersSQL   string = `drop index if exists users_idx cascade;`
 )
 
 func init() {
@@ -42,7 +42,7 @@ func down00001(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateTableUsersSql)
+	_, err := db.ExecContext(ctx, pgCreateTableUsersSQL)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func createTableUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func createIndexUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateIndexUsersSql)
+	_, err := db.ExecContext(ctx, pgCreateIndexUsersSQL)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func createIndexUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropTableUsersSql)
+	_, err := db.ExecContext(ctx, pgDropTableUsersSQL)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func dropTableUsers(ctx context.Context, db *sql.DB) error {
 }
 
 func dropIndexUsers(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropIndexUsersSql)
+	_, err := db.ExecContext(ctx, pgDropIndexUsersSQL)
 	if err != nil {
 		return err
 	}

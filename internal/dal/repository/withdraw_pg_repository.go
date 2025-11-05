@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	pgFindWithdrawSql          string = `select id, order_number, withdraw_amount, processed_at from withdrawals where id = $1;`
-	pgListWithdrawByAccountSql string = `select id, order_number, withdraw_amount, processed_at from withdrawals where account_id = $1 order by processed_at desc;`
-	pgGetWithdrawsByAccountSql string = `select sum(withdraw_amount) from withdrawals where account_id = $1;`
-	pgCreateWithdrawSql        string = `insert into withdrawals(id, account_id, order_number, withdraw_amount, processed_at) values ($1, $2, $3, $4, $5);`
+	pgFindWithdrawSQL          string = `select id, order_number, withdraw_amount, processed_at from withdrawals where id = $1;`
+	pgListWithdrawByAccountSQL string = `select id, order_number, withdraw_amount, processed_at from withdrawals where account_id = $1 order by processed_at desc;`
+	pgGetWithdrawsByAccountSQL string = `select sum(withdraw_amount) from withdrawals where account_id = $1;`
+	pgCreateWithdrawSQL        string = `insert into withdrawals(id, account_id, order_number, withdraw_amount, processed_at) values ($1, $2, $3, $4, $5);`
 )
 
 type WithdrawPgRepository struct {
@@ -36,7 +36,7 @@ func (wr *WithdrawPgRepository) Find(ctx context.Context, id string) (*model.Wit
 	}
 
 	withdraw := model.Withdraw{}
-	row := wr.db.GetDB().QueryRowContext(ctx, pgFindWithdrawSql, id)
+	row := wr.db.GetDB().QueryRowContext(ctx, pgFindWithdrawSQL, id)
 	err := row.Scan(&withdraw.ID, &withdraw.OrderNumber, &withdraw.WithdrawAmount, &withdraw.ProcessedAt)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -53,7 +53,7 @@ func (wr *WithdrawPgRepository) ListByAccount(ctx context.Context, accountID str
 		return res, nil
 	}
 
-	rows, err := wr.db.GetDB().QueryContext(ctx, pgListWithdrawByAccountSql, accountID)
+	rows, err := wr.db.GetDB().QueryContext(ctx, pgListWithdrawByAccountSQL, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (wr *WithdrawPgRepository) ListByAccount(ctx context.Context, accountID str
 }
 
 func (wr *WithdrawPgRepository) GetWithdrawsByAccount(ctx context.Context, accountID string) (float64, error) {
-	row := wr.db.GetDB().QueryRowContext(ctx, pgGetWithdrawsByAccountSql, accountID)
+	row := wr.db.GetDB().QueryRowContext(ctx, pgGetWithdrawsByAccountSQL, accountID)
 	var withdrawsSum float64
 	err := row.Scan(&withdrawsSum)
 	if err != nil {
@@ -94,7 +94,7 @@ func (wr *WithdrawPgRepository) Create(ctx context.Context, accountID string, wi
 	}
 
 	withdraw.ID = uuid.New().String()
-	_, err := wr.db.GetDB().ExecContext(ctx, pgCreateWithdrawSql, withdraw.ID, accountID, withdraw.OrderNumber, withdraw.WithdrawAmount, withdraw.ProcessedAt)
+	_, err := wr.db.GetDB().ExecContext(ctx, pgCreateWithdrawSQL, withdraw.ID, accountID, withdraw.OrderNumber, withdraw.WithdrawAmount, withdraw.ProcessedAt)
 	if err != nil {
 		return nil, err
 	}

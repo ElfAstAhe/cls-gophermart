@@ -57,18 +57,18 @@ func (cr *AppChiRouter) setupRoutes() {
 	cr.router.Route("/api", func(r chi.Router) {
 		// user
 		r.Route("/user", func(r chi.Router) {
-			r.Post("/register", cr.postApiUserRegister)     // POST /api/user/register
-			r.Post("/login", cr.postApiUserLogin)           // POST /api/user/login
-			r.Get("/withdrawals", cr.getApiUserWithdrawals) // GET  /api/user/withdrawals
+			r.Post("/register", cr.postAPIUserRegister)     // POST /api/user/register
+			r.Post("/login", cr.postAPIUserLogin)           // POST /api/user/login
+			r.Get("/withdrawals", cr.getAPIUserWithdrawals) // GET  /api/user/withdrawals
 			// orders
 			r.Route("/orders", func(r chi.Router) {
-				r.Post("/", cr.postApiUserOrders) // POST /api/user/orders
-				r.Get("/", cr.getApiUserOrders)   // GET  /api/user/orders
+				r.Post("/", cr.postAPIUserOrders) // POST /api/user/orders
+				r.Get("/", cr.getAPIUserOrders)   // GET  /api/user/orders
 			})
 			// balance
 			r.Route("/balance", func(r chi.Router) {
-				r.Get("/", cr.getApiUserBalance)                   // GET  /api/user/balance
-				r.Post("/withdraw", cr.postApiUserBalanceWithdraw) // POST /api/user/balance/withdraw
+				r.Get("/", cr.getAPIUserBalance)                   // GET  /api/user/balance
+				r.Post("/withdraw", cr.postAPIUserBalanceWithdraw) // POST /api/user/balance/withdraw
 			})
 		})
 	})

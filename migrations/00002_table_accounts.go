@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	pgCreateTableAccountsSql string = `create table if not exists accounts(
+	pgCreateTableAccountsSQL string = `create table if not exists accounts(
     id varchar(50) not null,
     user_id varchar(50) not null,
     person varchar(256) null,
@@ -16,7 +16,7 @@ const (
     constraint accounts_uk unique (user_id),
     constraint accounts_fk_user foreign key (user_id) references users(id) on delete cascade
 );`
-	pgDropTableAccountsSql string = `drop table if exists accounts cascade;`
+	pgDropTableAccountsSQL string = `drop table if exists accounts cascade;`
 )
 
 func init() {
@@ -32,7 +32,7 @@ func down00002(ctx context.Context, db *sql.DB) error {
 }
 
 func createTableAccounts(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgCreateTableAccountsSql)
+	_, err := db.ExecContext(ctx, pgCreateTableAccountsSQL)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func createTableAccounts(ctx context.Context, db *sql.DB) error {
 }
 
 func dropTableAccounts(ctx context.Context, db *sql.DB) error {
-	_, err := db.ExecContext(ctx, pgDropTableAccountsSql)
+	_, err := db.ExecContext(ctx, pgDropTableAccountsSQL)
 	if err != nil {
 		return err
 	}

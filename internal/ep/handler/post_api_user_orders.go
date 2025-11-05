@@ -8,9 +8,9 @@ import (
 	"github.com/ElfAstAhe/cls-gophermart/pkg/error"
 )
 
-func (cr *AppChiRouter) postApiUserOrders(rw http.ResponseWriter, r *http.Request) {
-	cr.log.Debug("postApiUserOrders start")
-	defer cr.log.Debug("postApiUserOrders finish")
+func (cr *AppChiRouter) postAPIUserOrders(rw http.ResponseWriter, r *http.Request) {
+	cr.log.Debug("postAPIUserOrders start")
+	defer cr.log.Debug("postAPIUserOrders finish")
 
 	defer utils.CloseOnly(r.Body)
 

@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	pgFindUserSql       string = `select id, username, password, disabled from users where id = $1`
-	pgFindUserByNameSql string = `select id, username, password, disabled from users where username = $1`
-	pgCreateUserSql     string = `insert into users(id, username, password, disabled) values( $1, $2, $3, $4)`
-	pgChangeUserSql     string = `update users set password = $2, disabled = $3 where id = $1`
-	pgSoftDeleteUserSql string = `update users set disabled = true where id = $1`
+	pgFindUserSQL       string = `select id, username, password, disabled from users where id = $1`
+	pgFindUserByNameSQL string = `select id, username, password, disabled from users where username = $1`
+	pgCreateUserSQL     string = `insert into users(id, username, password, disabled) values( $1, $2, $3, $4)`
+	pgChangeUserSQL     string = `update users set password = $2, disabled = $3 where id = $1`
+	pgSoftDeleteUserSQL string = `update users set disabled = true where id = $1`
 )
 
 type UserPgRepository struct {
@@ -33,11 +33,11 @@ func NewUserPgRepository(db db.DB, accountRepo repository.AccountRepository) *Us
 }
 
 func (u *UserPgRepository) Find(ctx context.Context, id string) (*model.User, error) {
-	return u.findSingle(ctx, pgFindUserSql, id)
+	return u.findSingle(ctx, pgFindUserSQL, id)
 }
 
 func (u *UserPgRepository) FindByName(ctx context.Context, username string) (*model.User, error) {
-	return u.findSingle(ctx, pgFindUserByNameSql, username)
+	return u.findSingle(ctx, pgFindUserByNameSQL, username)
 }
 
 func (u *UserPgRepository) findSingle(ctx context.Context, query string, param any) (*model.User, error) {
@@ -65,7 +65,7 @@ func (u *UserPgRepository) Create(ctx context.Context, user *model.User) (*model
 
 	user.ID = uuid.New().String()
 
-	_, err := u.db.GetDB().ExecContext(ctx, pgCreateUserSql, user.ID, user.Username, user.Password, user.Disabled)
+	_, err := u.db.GetDB().ExecContext(ctx, pgCreateUserSQL, user.ID, user.Username, user.Password, user.Disabled)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (u *UserPgRepository) Change(ctx context.Context, user *model.User) (*model
 		return nil, err
 	}
 
-	_, err := u.db.GetDB().ExecContext(ctx, pgChangeUserSql, user.ID, user.Password, user.Disabled)
+	_, err := u.db.GetDB().ExecContext(ctx, pgChangeUserSQL, user.ID, user.Password, user.Disabled)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (u *UserPgRepository) Change(ctx context.Context, user *model.User) (*model
 }
 
 func (u *UserPgRepository) SoftDelete(ctx context.Context, id string) error {
-	_, err := u.db.GetDB().ExecContext(ctx, pgSoftDeleteUserSql, id)
+	_, err := u.db.GetDB().ExecContext(ctx, pgSoftDeleteUserSQL, id)
 	if err != nil {
 		return err
 	}

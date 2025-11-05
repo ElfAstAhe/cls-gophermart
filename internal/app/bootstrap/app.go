@@ -90,7 +90,7 @@ func (app *App) Init() error {
 	}
 
 	logger.Info("initializing http server")
-	if err := app.initHttpServer(); err != nil {
+	if err := app.initHTTPServer(); err != nil {
 		return err
 	}
 
@@ -213,7 +213,7 @@ func (app *App) initRouter() error {
 	return nil
 }
 
-func (app *App) initHttpServer() error {
+func (app *App) initHTTPServer() error {
 	app.httpServer = &http.Server{
 		Addr:    app.Conf.HTTP.GetListenerAddr(),
 		Handler: app.router.GetRouter(),

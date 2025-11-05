@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path"
+	"net/url"
 	"time"
 
-	_log "github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
-	_dto "github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
+	"github.com/ElfAstAhe/cls-gophermart/internal/app/logger"
+	"github.com/ElfAstAhe/cls-gophermart/pkg/client/loyalty/dto"
 )
 
 const (
@@ -19,22 +19,27 @@ const (
 type LSSimpleClient struct {
 	client  *http.Client
 	baseURL string
-	log     _log.Logger
+	log     logger.Logger
 }
 
-func NewLSSimpleClient(baseURL string, timeOut time.Duration, logger _log.Logger) (*LSSimpleClient, error) {
+func NewLSSimpleClient(baseURL string, timeOut time.Duration, logger logger.Logger) *LSSimpleClient {
 	return &LSSimpleClient{
 		client: &http.Client{
 			Timeout: timeOut,
 		},
 		baseURL: baseURL,
 		log:     logger.GetLogger("ls-simple-client"),
-	}, nil
+	}
 }
 
-func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string, token string) (*_dto.LSOrderDto, error) {
-	getOrderUrl := path.Join(lc.baseURL, lsGetOrderPathParam)
-	req, err := http.NewRequest(http.MethodGet, getOrderUrl, nil)
+func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string) (*dto.LSOrderDto, error) {
+	getOrderUrl, err := url.Parse(lc.baseURL)
+	if err != nil {
+		return nil, err
+	}
+	getOrderUrl = getOrderUrl.JoinPath(orderNumber)
+
+	req, err := http.NewRequest(http.MethodGet, getOrderUrl.String(), nil)
 	if err != nil {
 		return nil, NewLSClientError(fmt.Sprintf("error creating request to get order [%s]", orderNumber), -1, err)
 	}
@@ -50,10 +55,10 @@ func (lc *LSSimpleClient) GetOrder(ctx context.Context, orderNumber string, toke
 		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s] with status code [%v]", orderNumber, resp.StatusCode), resp.StatusCode, nil)
 	}
 	decoder := json.NewDecoder(resp.Body)
-	dto := &_dto.LSOrderDto{}
-	if err := decoder.Decode(dto); err != nil {
+	lsOrder := &dto.LSOrderDto{}
+	if err := decoder.Decode(lsOrder); err != nil {
 		return nil, NewLSClientError(fmt.Sprintf("error executing request to get order [%s]", orderNumber), -1, err)
 	}
 
-	return dto, nil
+	return lsOrder, nil
 }

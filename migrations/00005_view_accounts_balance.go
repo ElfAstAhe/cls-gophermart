@@ -11,9 +11,9 @@ const (
 	pgCreateViewOrdersBalanceSql string = `create or replace view v_accounts_balance as
 select
     a.id as account_id,
-    ao.accruals_amount - aw.withdrawals_amount as balance,
-    ao.accruals_amount,
-    aw.withdrawals_amount
+    coalesce(ao.accruals_amount, 0.0) - coalesce(aw.withdrawals_amount, 0.0) as balance,
+    coalesce(ao.accruals_amount, 0.0) as accruals_amount,
+    coalesce(aw.withdrawals_amount, 0.0) as withdrawals_amount
 from
     accounts a
     left outer join (

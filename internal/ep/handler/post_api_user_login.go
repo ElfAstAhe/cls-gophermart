@@ -11,10 +11,14 @@ func (cr *AppChiRouter) postApiUserLogin(rw http.ResponseWriter, r *http.Request
 	jwtString, err := cr.authFacade.LoginUser(r.Context(), r.Body)
 	if err != nil {
 		// 400
-		// ..
+		if errors.As(err, &errs.AppInvalidArgumentErr) {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+
+			return
+		}
 
 		// 401
-		if errors.As(err, &errs.AuthUnauthorizedErr) {
+		if errors.As(err, &errs.AuthPasswordIncorrectErr) {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
 
 			return

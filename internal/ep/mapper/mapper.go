@@ -22,7 +22,7 @@ func ToOrderDto(order *model.Order) *v1.OrderDto {
 }
 
 func ToOrderDtoList(orders []*model.Order) []*v1.OrderDto {
-	res := make([]*v1.OrderDto, len(orders))
+	res := make([]*v1.OrderDto, 0)
 	for _, order := range orders {
 		res = append(res, ToOrderDto(order))
 	}

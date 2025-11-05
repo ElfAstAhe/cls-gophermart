@@ -16,18 +16,21 @@ func (cr *AppChiRouter) getApiUserBalance(rw http.ResponseWriter, r *http.Reques
 	dto, err := cr.usersFacade.GetBalance(r.Context())
 	// error check
 	if err != nil {
+		// 401
 		if errors.As(err, &error.AuthUnauthorizedErr) {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
 
 			return
 		}
 
+		// 500
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
 	rw.WriteHeader(http.StatusOK)
+	rw.Header().Set("Content-Type", "application/json")
 
 	enc := json.NewEncoder(rw)
 	if err := enc.Encode(dto); err != nil {

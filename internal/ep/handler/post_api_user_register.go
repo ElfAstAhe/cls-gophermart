@@ -11,7 +11,11 @@ func (cr *AppChiRouter) postApiUserRegister(rw http.ResponseWriter, r *http.Requ
 	jwtString, err := cr.authFacade.RegisterUser(r.Context(), r.Body)
 	if err != nil {
 		// 400
-		// ..
+		if errors.As(err, &errs.AppInvalidArgumentErr) {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+
+			return
+		}
 
 		// 409
 		if errors.As(err, &errs.ModelAlreadyExistsErr) {

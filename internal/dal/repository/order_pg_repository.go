@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	pgFindOrderSql            string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where id = $1`
-	pgFindOrderByNumberSql    string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where doc_number = $1`
-	pgListOrdersByAccountSql  string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where account_id = $1`
-	pgCreateOrderSql          string = `insert into orders(id, account_id, doc_number, status, accrual_amount, uploaded_at) values($1, $2, $3, $4, $5, $6)`
-	pgChangeOrderSql          string = `update orders set status = $2, accrual_amount = $3, uploaded_at = $4 where id = $1`
-	pgListOrdersUnfinishedSql string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where status = any($1)`
+	pgFindOrderSQL            string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where id = $1`
+	pgFindOrderByNumberSQL    string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where doc_number = $1`
+	pgListOrdersByAccountSQL  string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where account_id = $1`
+	pgCreateOrderSQL          string = `insert into orders(id, account_id, doc_number, status, accrual_amount, uploaded_at) values($1, $2, $3, $4, $5, $6)`
+	pgChangeOrderSQL          string = `update orders set status = $2, accrual_amount = $3, uploaded_at = $4 where id = $1`
+	pgListOrdersUnfinishedSQL string = `select id, account_id, doc_number, status, accrual_amount, uploaded_at from orders where status = any($1)`
 )
 
 type OrderPgRepository struct {
@@ -51,11 +51,11 @@ func (o *OrderPgRepository) listUnacceptableOrderStatuses() []string {
 }
 
 func (o *OrderPgRepository) Find(ctx context.Context, id string) (*model.Order, error) {
-	return o.findSingle(ctx, pgFindOrderSql, id)
+	return o.findSingle(ctx, pgFindOrderSQL, id)
 }
 
 func (o *OrderPgRepository) FindByNumber(ctx context.Context, number string) (*model.Order, error) {
-	return o.findSingle(ctx, pgFindOrderByNumberSql, number)
+	return o.findSingle(ctx, pgFindOrderByNumberSQL, number)
 }
 
 func (o *OrderPgRepository) findSingle(ctx context.Context, query string, params ...any) (*model.Order, error) {
@@ -77,7 +77,7 @@ func (o *OrderPgRepository) ListByAccount(ctx context.Context, accountID string)
 		return make([]*model.Order, 0), nil
 	}
 
-	return o.list(ctx, pgListOrdersByAccountSql, accountID)
+	return o.list(ctx, pgListOrdersByAccountSQL, accountID)
 }
 
 func (o *OrderPgRepository) ListUnfinished(ctx context.Context, statuses ...string) ([]*model.Order, error) {
@@ -85,7 +85,7 @@ func (o *OrderPgRepository) ListUnfinished(ctx context.Context, statuses ...stri
 		return make([]*model.Order, 0), nil
 	}
 
-	return o.list(ctx, pgListOrdersUnfinishedSql, statuses)
+	return o.list(ctx, pgListOrdersUnfinishedSQL, statuses)
 }
 
 func (o *OrderPgRepository) list(ctx context.Context, query string, params ...any) ([]*model.Order, error) {
@@ -126,7 +126,7 @@ func (o *OrderPgRepository) Create(ctx context.Context, accountID string, order 
 
 	order.ID = uuid.New().String()
 
-	_, err := o.db.GetDB().ExecContext(ctx, pgCreateOrderSql, order.ID, accountID, order.Number, order.Status, order.AccrualAmount, order.UploadedAt)
+	_, err := o.db.GetDB().ExecContext(ctx, pgCreateOrderSQL, order.ID, accountID, order.Number, order.Status, order.AccrualAmount, order.UploadedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (o *OrderPgRepository) Change(ctx context.Context, order *model.Order) (*mo
 		return nil, err
 	}
 
-	_, err := o.db.GetDB().ExecContext(ctx, pgChangeOrderSql, order.ID, order.Status, order.AccrualAmount, order.UploadedAt)
+	_, err := o.db.GetDB().ExecContext(ctx, pgChangeOrderSQL, order.ID, order.Status, order.AccrualAmount, order.UploadedAt)
 	if err != nil {
 		return nil, err
 	}

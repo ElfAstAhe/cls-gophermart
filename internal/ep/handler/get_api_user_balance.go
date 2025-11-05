@@ -29,8 +29,9 @@ func (cr *AppChiRouter) getAPIUserBalance(rw http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// 200
 	rw.WriteHeader(http.StatusOK)
-	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Add("Content-Type", "application/json")
 
 	enc := json.NewEncoder(rw)
 	if err := enc.Encode(dto); err != nil {
